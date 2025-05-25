@@ -26,7 +26,7 @@ def login():
             return render_template("login.html", error="아이디 또는 비밀번호가 잘못되었습니다.")
 
     # GET 요청: 로그인 페이지 렌더링
-    return render_template("login.html")
+    return render_template("login.html", error=None)
 
 # 학습 플래너 페이지
 @app.route("/plan", methods=["GET", "POST"])
