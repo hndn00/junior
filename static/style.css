@@ -1,4 +1,4 @@
-/* 전체 페이지 설정 */
+/* 기본 설정 */
 body {
     margin: 0;
     padding: 0;
@@ -10,7 +10,7 @@ body {
     min-height: 100vh;
 }
 
-/* 컨테이너 박스 */
+/* 컨테이너 스타일 */
 .container {
     background-color: #f9f9f9;
     padding: 32px;
@@ -32,20 +32,20 @@ body {
 
 /* 입력 그룹 */
 .container form div {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 /* 라벨 */
-.container label {
+label {
     display: block;
     margin-bottom: 6px;
     font-weight: 500;
-    color: #333333;
+    color: #333;
 }
 
-/* 입력 필드 */
-.container input[type="text"],
-.container input[type="number"] {
+/* 일반 입력창 */
+input[type="text"],
+input[type="number"] {
     width: 100%;
     padding: 10px;
     border-radius: 8px;
@@ -55,21 +55,33 @@ body {
     margin-bottom: 10px;
 }
 
-/* 과목 그룹 구분선 */
-.container hr {
-    margin: 20px 0;
-    border: none;
-    border-top: 1px solid #ddd;
+/* 슬라이더 스타일 */
+input[type="range"] {
+    width: 100%;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    accent-color: #87cefa; /* 슬라이더 색상 (하늘색) */
 }
 
-/* 과목 항목 영역 */
-.subject-item {
-    margin-bottom: 16px;
-}
-
-/* 버튼 */
-.container button {
+/* 슬라이더 값 텍스트 */
+span {
     display: inline-block;
+    font-weight: 500;
+    color: #121416;
+    margin-left: 8px;
+}
+
+/* 과목 그룹 */
+.subject-item {
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #f0f4f8;
+    margin-bottom: 16px;
+    border: 1px solid #e0e0e0;
+}
+
+/* 버튼 스타일 */
+button {
     background-color: #b2cae5;
     color: #121416;
     border: none;
@@ -78,11 +90,18 @@ body {
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
     margin-right: 10px;
+    margin-top: 10px;
     transition: background-color 0.2s ease;
 }
 
-.container button:hover {
+button:hover {
     background-color: #a0bfe0;
+}
+
+/* 구분선 */
+hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 20px 0;
 }
