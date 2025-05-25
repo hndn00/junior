@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>학습 시간 배분 결과</title>
     <link rel="stylesheet" href="/static/result_style.css">
-    <!-- Chart.js 버전 명시하여 최신 버전 사용 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
@@ -14,8 +13,8 @@
         <canvas id="timeDistributionChart"></canvas>
     </div>
     <ul>
-        {% for name, time in results %}
-            <li><strong>{{ name }}</strong>: {{ time }} 시간</li>
+        {% for name, hours, minutes in results %}
+            <li><strong>{{ name }}</strong>: {{ hours }}시간 {{ minutes }}분</li>
         {% endfor %}
     </ul>
     <a href="/plan">플래너로 돌아가기</a>
@@ -24,14 +23,14 @@
 <script>
     // Flask의 템플릿 데이터를 JavaScript 변수로 직접 변환
     const chartLabels = [
-        {% for name, time in results %}
+        {% for name, hours, minutes in results %}
             "{{ name }}",
         {% endfor %}
     ];
     
     const chartData = [
-        {% for name, time in results %}
-            {{ time }},
+        {% for name, hours, minutes in results %}
+            {{ hours + (minutes / 60) }},  // 차트 데이터용으로 다시 소수점 형식으로 변환
         {% endfor %}
     ];
     
@@ -110,7 +109,9 @@
                             label: function(context) {
                                 const label = context.label || '';
                                 const value = context.raw || 0;
-                                return `${label}: ${value} 시간`;
+                                const hours = Math.floor(value);
+                                const minutes = Math.round((value - hours) * 60);
+                                return `${label}: ${hours}시간 ${minutes}분`;
                             }
                         }
                     }
