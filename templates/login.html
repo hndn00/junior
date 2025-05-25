@@ -18,7 +18,9 @@
             <input type="password" id="password" name="password" required>
         </div>
         <button type="submit">로그인</button>
-        <p style="color: red;">아이디 또는 비밀번호가 잘못되었습니다.</p>
+        {% if error %}
+        <p style="color: red;">{{ error }}</p>
+        {% endif %}
     </form>
 </div>
 </body>
