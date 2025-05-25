@@ -7,6 +7,10 @@
 </head>
 <body>
 <div class="container">
+    <div class="top-right-menu">
+        <a href="/" class="home-btn">메인으로</a>
+    </div>
+    
     <h1>로그인</h1>
     <form action="/login" method="post">
         <div>
@@ -17,10 +21,7 @@
             <label for="password">비밀번호:</label>
             <input type="password" id="password" name="password" required>
         </div>
-        <div class="button-group">
-            <button type="submit">로그인</button>
-            <a href="/" class="back-button">메인으로 돌아가기</a>
-        </div>
+        <button type="submit">로그인</button>
         {% if error %}
         <p style="color: red;">{{ error }}</p>
         {% endif %}

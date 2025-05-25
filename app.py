@@ -1,6 +1,7 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, session
 
 app = Flask(__name__)
+app.secret_key = "your_secret_key_here"  # 실제 사용 시 복잡한 키로 변경하세요
 
 # 간단한 사용자 인증 정보
 USER_CREDENTIALS = {
@@ -12,6 +13,14 @@ USER_CREDENTIALS = {
 def main():
     return render_template("main.html")
 
+# 로그아웃 처리
+@app.route("/logout")
+def logout():
+    # 세션에서 사용자 정보 제거
+    session.pop('username', None)
+    # 로그인 페이지로 리다이렉트
+    return redirect(url_for("login"))
+
 # 로그인 처리 페이지
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -21,6 +30,8 @@ def login():
 
         # 사용자 인증 확인
         if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
+            # 세션에 사용자 이름 저장
+            session['username'] = username
             return redirect(url_for("plan"))
         else:
             return render_template("login.html", error="아이디 또는 비밀번호가 잘못되었습니다.", username=username)
