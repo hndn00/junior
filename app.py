@@ -23,10 +23,10 @@ def login():
         if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
             return redirect(url_for("plan"))
         else:
-            return render_template("login.html", error="아이디 또는 비밀번호가 잘못되었습니다.")
+            return render_template("login.html", error="아이디 또는 비밀번호가 잘못되었습니다.", username=username)
 
     # GET 요청: 로그인 페이지 렌더링
-    return render_template("login.html", error=None)
+    return render_template("login.html", error=None, username="")
 
 # 학습 플래너 페이지
 @app.route("/plan", methods=["GET", "POST"])
