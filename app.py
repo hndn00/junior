@@ -11,6 +11,12 @@ USER_CREDENTIALS = {
 # 첫 화면: main.html
 @app.route("/")
 def main():
+    # 세션 확인을 위해 명시적으로 세션 접근
+    # 이렇게 하면 세션이 유효한지 확인할 수 있음
+    username = session.get('username', None)
+    # main.html 템플릿에는 이미 {% if session.username %} 조건문이 있음
+    # 추가적인 서버 측 세션 검증은 필요하지 않으며
+    # 첫 페이지는 로그인 여부와 상관없이 접근 가능
     return render_template("main.html")
 
 # 로그아웃 처리
@@ -42,6 +48,11 @@ def login():
 # 학습 플래너 페이지
 @app.route("/plan", methods=["GET", "POST"])
 def plan():
+    # 로그인 상태 확인
+    if 'username' not in session:
+        # 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+        return redirect(url_for("login"))
+        
     if request.method == "POST":
         try:
             total_hours = float(request.form.get("total_hours"))
