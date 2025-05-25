@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>학습 시간 배분 결과</title>
+</head>
+<body>
+<h2>학습 시간 배분 결과</h2>
+<ul>
+  {% for name, time in results %}
+  <li>{{ name }}: {{ time }} 시간</li>
+  {% endfor %}
+</ul>
+<a href="/">돌아가기</a>
+</body>
+</html>
