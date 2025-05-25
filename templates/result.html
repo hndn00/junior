@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <title>학습 시간 배분 결과</title>
     <link rel="stylesheet" href="/static/result_style.css">
+    <!-- Chart.js 버전 명시하여 최신 버전 사용 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
 <div class="container">
     <h2>학습 시간 배분 결과</h2>
+    <div class="chart-container">
+        <canvas id="timeDistributionChart"></canvas>
+    </div>
     <ul>
         {% for name, time in results %}
             <li><strong>{{ name }}</strong>: {{ time }} 시간</li>
@@ -15,5 +20,109 @@
     </ul>
     <a href="/plan">플래너로 돌아가기</a>
 </div>
+
+<script>
+    // Flask의 템플릿 데이터를 JavaScript 변수로 직접 변환
+    const chartLabels = [
+        {% for name, time in results %}
+            "{{ name }}",
+        {% endfor %}
+    ];
+    
+    const chartData = [
+        {% for name, time in results %}
+            {{ time }},
+        {% endfor %}
+    ];
+    
+    // 색상 배열 생성 함수
+    function generateColors(count) {
+        const predefinedColors = [
+            'rgba(255, 99, 132, 0.7)',   // 빨강
+            'rgba(54, 162, 235, 0.7)',   // 파랑
+            'rgba(255, 206, 86, 0.7)',   // 노랑
+            'rgba(75, 192, 192, 0.7)',   // 청록
+            'rgba(153, 102, 255, 0.7)',  // 보라
+            'rgba(255, 159, 64, 0.7)',   // 주황
+            'rgba(199, 199, 199, 0.7)',  // 회색
+            'rgba(83, 102, 255, 0.7)',   // 남색
+            'rgba(78, 205, 196, 0.7)',   // 민트
+            'rgba(255, 99, 255, 0.7)'    // 분홍
+        ];
+        
+        const backgroundColors = [];
+        const borderColors = [];
+        
+        for (let i = 0; i < count; i++) {
+            const color = predefinedColors[i % predefinedColors.length];
+            backgroundColors.push(color);
+            borderColors.push(color.replace('0.7', '1'));
+        }
+        
+        return { backgroundColors, borderColors };
+    }
+    
+    // 차트 초기화 함수
+    function initializeChart() {
+        const canvas = document.getElementById('timeDistributionChart');
+        
+        if (!chartLabels.length || !chartData.length) {
+            canvas.style.display = 'none';
+            const noDataMsg = document.createElement('p');
+            noDataMsg.textContent = '표시할 데이터가 없습니다.';
+            noDataMsg.style.textAlign = 'center';
+            noDataMsg.style.marginTop = '20px';
+            canvas.parentNode.appendChild(noDataMsg);
+            return;
+        }
+        
+        const colors = generateColors(chartLabels.length);
+        
+        // Chart.js 컨텍스트 설정
+        const ctx = canvas.getContext('2d');
+        
+        // 차트 객체 생성 및 설정
+        const chart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartData,
+                    backgroundColor: colors.backgroundColors,
+                    borderColor: colors.borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                return `${label}: ${value} 시간`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // 페이지 로드 완료 후 차트 초기화
+    window.addEventListener('load', function() {
+        initializeChart();
+    });
+</script>
 </body>
 </html>

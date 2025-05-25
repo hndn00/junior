@@ -1,8 +1,14 @@
+@font-face {
+    font-family: 'NoonnuBasicGothicRegular';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noon-2410@1.0/NoonnuBasicGothicRegular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
 /* 전체 페이지 설정 */
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', 'Noto Sans', sans-serif;
+    font-family: 'NoonnuBasicGothicRegular', 'Noto Sans', sans-serif, 'Inter';
     background-color: #ffffff;
     display: flex;
     justify-content: center;

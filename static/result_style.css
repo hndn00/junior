@@ -1,5 +1,11 @@
+@font-face {
+    font-family: 'NoonnuBasicGothicRegular';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noon-2410@1.0/NoonnuBasicGothicRegular.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
 body {
-    font-family: 'Malgun Gothic', sans-serif;
+    font-family: 'Malgun Gothic', sans-serif , 'Inter', 'Noto Sans', 'NoonnuBasicGothicRegular';
     background-color: #f8f9fa;
     color: #333;
     margin: 0;
@@ -14,9 +20,28 @@ body {
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 600px;
+    max-width: 700px; /* 너비 조정 */
     text-align: center;
 }
+
+/* 차트 컨테이너 스타일 개선 */
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 400px;
+    margin: 20px auto 30px auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* 캔버스 요소가 컨테이너를 꽉 채우도록 설정 */
+#timeDistributionChart {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
 h2 {
     color: #007bff;
     margin-bottom: 25px;
