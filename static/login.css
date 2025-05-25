@@ -6,20 +6,18 @@ body {
     background-color: #ffffff;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     min-height: 100vh;
 }
 
-/* 컨테이너 박스 */
+/* 로그인 컨테이너 박스 */
 .container {
     background-color: #f9f9f9;
     padding: 32px;
-    margin-top: 40px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     width: 100%;
-    max-width: 600px;
-    box-sizing: border-box;
+    max-width: 400px;
 }
 
 /* 제목 */
@@ -44,42 +42,26 @@ body {
 }
 
 /* 입력 필드 */
-.container input[type="text"],
-.container input[type="number"] {
+.container input {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 16px;
     box-sizing: border-box;
-    margin-bottom: 10px;
-}
-
-/* 과목 그룹 구분선 */
-.container hr {
-    margin: 20px 0;
-    border: none;
-    border-top: 1px solid #ddd;
-}
-
-/* 과목 항목 영역 */
-.subject-item {
-    margin-bottom: 16px;
 }
 
 /* 버튼 */
 .container button {
-    display: inline-block;
+    width: 100%;
     background-color: #b2cae5;
     color: #121416;
     border: none;
-    padding: 10px 16px;
+    padding: 12px;
     border-radius: 8px;
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    margin-top: 10px;
-    margin-right: 10px;
     transition: background-color 0.2s ease;
 }
 
