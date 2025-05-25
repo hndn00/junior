@@ -3,25 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <title>학습 플래너</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<h1>학습 플래너</h1>
-<form action="/plan" method="post">
-    총 학습 시간 (시간): <input type="number" name="total_hours" step="0.1" required><br><br>
-    <div id="subjects">
+<div class="container">
+    <h1>학습 플래너</h1>
+    <form action="/plan" method="post">
         <div>
-            과목명: <input type="text" name="name" required>
-            중요도 (0~1): <input type="number" step="0.01" name="weight" required>
+            <label for="total_hours">총 학습 시간 (시간):</label>
+            <input type="number" id="total_hours" name="total_hours" step="0.1" required>
         </div>
-    </div>
-    <button type="button" onclick="addSubject()">과목 추가</button><br><br>
-    <button type="submit">학습 시간 계산</button>
-</form>
+        <hr>
+        <div id="subjects">
+            <div class="subject-item">
+                <label for="name1">과목명:</label>
+                <input type="text" id="name1" name="name" required>
+                <label for="weight1">중요도 (0~1):</label>
+                <input type="number" id="weight1" step="0.01" name="weight" required>
+            </div>
+        </div>
+        <button type="button" onclick="addSubject()">과목 추가</button><br><br>
+        <button type="submit">학습 시간 계산</button>
+    </form>
+</div>
 
 <script>
+    let subjectCount = 1;
     function addSubject() {
+        subjectCount++;
         const div = document.createElement('div');
-        div.innerHTML = '과목명: <input type="text" name="name" required> 중요도 (0~1): <input type="number" step="0.01" name="weight" required>';
+        div.classList.add('subject-item');
+        div.innerHTML = `
+                <label for="name${subjectCount}">과목명:</label>
+                <input type="text" id="name${subjectCount}" name="name" required>
+                <label for="weight${subjectCount}">중요도 (0~1):</label>
+                <input type="number" id="weight${subjectCount}" step="0.01" name="weight" required>
+            `;
         document.getElementById('subjects').appendChild(div);
     }
 </script>
