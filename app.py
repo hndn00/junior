@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 # 간단한 사용자 인증 정보
 USER_CREDENTIALS = {
-    "admin": "1234",  # 아이디: 비밀번호
+    "admin": "helloai",  # 아이디: 비밀번호
 }
 
 # 루트 경로: 로그인 페이지
