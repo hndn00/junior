@@ -41,7 +41,20 @@ def plan():
                 return "입력 데이터가 잘못되었습니다. 다시 시도해주세요."
 
             total_weight = sum(weights)
-            results = [(name, round((weight / total_weight) * total_hours, 2)) for name, weight in zip(names, weights)]
+            
+            # 소수점 시간을 시간과 분으로 변환하는 함수
+            def convert_to_hours_minutes(decimal_hours):
+                hours = int(decimal_hours)  # 정수 부분 (시간)
+                minutes = int((decimal_hours - hours) * 60)  # 소수점 부분을 분으로 변환
+                return hours, minutes
+            
+            # 결과 계산 및 시간 형식 변환
+            results = []
+            for name, weight in zip(names, weights):
+                decimal_hours = (weight / total_weight) * total_hours
+                hours, minutes = convert_to_hours_minutes(decimal_hours)
+                results.append((name, hours, minutes))
+            
             return render_template("result.html", results=results)
         except Exception as e:
             return f"오류가 발생했습니다: {e}"
