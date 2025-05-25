@@ -57,6 +57,13 @@ body {
     box-sizing: border-box;
 }
 
+/* 버튼 그룹 */
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 /* 버튼 */
 .container button {
     width: 100%;
@@ -73,4 +80,24 @@ body {
 
 .container button:hover {
     background-color: #a0bfe0;
+}
+
+/* 메인으로 돌아가기 버튼 */
+.back-button {
+    display: block;
+    width: 100%;
+    background-color: #f0f0f0;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+    background-color: #e5e5e5;
 }
