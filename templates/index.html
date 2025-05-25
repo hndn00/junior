@@ -9,6 +9,7 @@
 <div class="container">
     {% if session.username %}
     <div class="top-right-menu">
+        <span class="user-id">{{ session.username }}</span>
         <a href="/logout" class="logout-btn">로그아웃</a>
     </div>
     {% endif %}
