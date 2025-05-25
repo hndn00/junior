@@ -8,6 +8,12 @@
 </head>
 <body>
 <div class="container">
+    {% if session.username %}
+    <div class="top-right-menu">
+        <a href="/logout" class="logout-btn">로그아웃</a>
+    </div>
+    {% endif %}
+    
     <h2>학습 시간 배분 결과</h2>
     <div class="chart-container">
         <canvas id="timeDistributionChart"></canvas>
@@ -17,7 +23,9 @@
             <li><strong>{{ name }}</strong>: {{ hours }}시간 {{ minutes }}분</li>
         {% endfor %}
     </ul>
-    <a href="/plan">플래너로 돌아가기</a>
+    <div class="action-buttons">
+        <a href="/plan" class="action-btn">플래너로 돌아가기</a>
+    </div>
 </div>
 
 <script>

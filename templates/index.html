@@ -7,6 +7,12 @@
 </head>
 <body>
 <div class="container">
+    {% if session.username %}
+    <div class="top-right-menu">
+        <a href="/logout" class="logout-btn">로그아웃</a>
+    </div>
+    {% endif %}
+    
     <h1>학습 플래너</h1>
     <form action="/plan" method="post">
         <div>
@@ -27,9 +33,11 @@
         <button type="submit">학습 시간 계산</button>
     </form>
     
+    {% if not session.username %}
     <div style="text-align: center; margin-top: 20px;">
         <a href="/" style="color: #555; text-decoration: underline; font-size: 14px;">메인으로 돌아가기</a>
     </div>
+    {% endif %}
 </div>
 
 <script>
