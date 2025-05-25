@@ -1,15 +1,8 @@
-/* 기본 설정 */
-@font-face {
-    font-family: 'NoonnuBasicGothicRegular';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noon-2410@1.0/NoonnuBasicGothicRegular.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
-}
-
+/* 전체 레이아웃 정리 */
 body {
     margin: 0;
     padding: 0;
-    font-family: 'NoonnuBasicGothicRegular', 'Inter', 'Noto Sans', sans-serif;
+    font-family: 'Inter', 'Noto Sans', sans-serif;
     background-color: #ffffff;
     display: flex;
     justify-content: center;
@@ -17,7 +10,7 @@ body {
     min-height: 100vh;
 }
 
-/* 컨테이너 스타일 */
+/* 메인 컨테이너 */
 .container {
     background-color: #f9f9f9;
     padding: 32px;
@@ -37,8 +30,8 @@ body {
     margin-bottom: 24px;
 }
 
-/* 입력 그룹 */
-.container form div {
+/* 각 입력 그룹 */
+.container form > div {
     margin-bottom: 20px;
 }
 
@@ -50,7 +43,7 @@ label {
     color: #333;
 }
 
-/* 일반 입력창 */
+/* 입력창 공통 */
 input[type="text"],
 input[type="number"] {
     width: 100%;
@@ -62,48 +55,28 @@ input[type="number"] {
     margin-bottom: 10px;
 }
 
-/* 슬라이더 스타일 */
+/* 슬라이더 */
 input[type="range"] {
     width: 100%;
     margin-top: 4px;
     margin-bottom: 8px;
-    accent-color: #87cefa; /* 슬라이더 색상 (하늘색) */
+    accent-color: #87cefa;
 }
 
-/* 슬라이더 값 텍스트 */
-span {
-    display: inline-block;
+/* 슬라이더 값 표시 */
+.subject-item span {
     font-weight: 500;
     color: #121416;
     margin-left: 8px;
 }
 
-/* 과목 그룹 */
+/* 과목 입력 블록 */
 .subject-item {
-    padding: 12px;
-    border-radius: 8px;
+    padding: 16px;
+    border-radius: 10px;
     background-color: #f0f4f8;
     margin-bottom: 16px;
     border: 1px solid #e0e0e0;
-}
-
-/* 버튼 스타일 */
-button {
-    background-color: #b2cae5;
-    color: #121416;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-right: 10px;
-    margin-top: 10px;
-    transition: background-color 0.2s ease;
-}
-
-button:hover {
-    background-color: #a0bfe0;
 }
 
 /* 구분선 */
@@ -111,4 +84,42 @@ hr {
     border: none;
     border-top: 1px solid #ddd;
     margin: 20px 0;
+}
+
+/* 버튼 공통 스타일 */
+button {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+/* Add Subject 버튼 - 작고 가벼운 느낌 */
+button[type="button"] {
+    background-color: #eeeeee;
+    color: #333;
+    border: none;
+    padding: 8px 14px;
+    margin-top: 8px;
+    display: inline-block;
+}
+
+button[type="button"]:hover {
+    background-color: #dddddd;
+}
+
+/* Calculate Study Time 버튼 - 강조 & 넓게 */
+button[type="submit"] {
+    background-color: #b2cae5;
+    color: #121416;
+    border: none;
+    padding: 12px;
+    width: 100%;
+    margin-top: 16px;
+}
+
+button[type="submit"]:hover {
+    background-color: #a0bfe0;
 }

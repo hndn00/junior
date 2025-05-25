@@ -2,29 +2,29 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>학습 플래너</title>
+    <title>Study Planner</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <div class="container">
-    <h1>학습 플래너</h1>
+    <h1>Study Planner</h1>
     <form action="/plan" method="post">
         <div>
-            <label for="total_hours">총 학습 시간 (시간):</label>
+            <label for="total_hours">Total Study Time(hours):</label>
             <input type="number" id="total_hours" name="total_hours" step="0.1" required>
         </div>
         <hr>
         <div id="subjects">
             <div class="subject-item">
-                <label for="name1">과목명:</label>
+                <label for="name1">Subject Name:</label>
                 <input type="text" id="name1" name="name" required>
-                <label for="weight1">중요도:</label>
+                <label for="weight1">Importance Level:</label>
                 <input type="range" id="weight1" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue1', this.value)">
                 <span id="sliderValue1">0.5</span>
             </div>
         </div>
-        <button type="button" onclick="addSubject()">과목 추가</button><br><br>
-        <button type="submit">학습 시간 계산</button>
+        <button type="button" onclick="addSubject()">Add Subject</button><br><br>
+        <button type="submit">Caculate Study Time</button>
     </form>
 </div>
 

@@ -1,0 +1,41 @@
+/* 전체 레이아웃 중앙 정렬 */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Noto Sans', sans-serif;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* 중앙 컨테이너 */
+.center {
+    text-align: center;
+}
+
+/* 제목 텍스트 */
+h1 {
+    font-size: 64px;
+    font-weight: bold;
+    color: #333; /* 텍스트 색상 */
+    margin-bottom: 40px;
+}
+
+/* 로그인 버튼 */
+button {
+    background-color: #b2cae5;
+    color: #121416;
+    border: none;
+    padding: 14px 28px;
+    font-size: 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #a0bfe0;
+}
