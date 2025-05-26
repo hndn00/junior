@@ -1,22 +1,22 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>학습 플래너 - 메인</title>
+  <title>Study Planner - Main</title>
   <link rel="stylesheet" href="/static/main.css" />
 </head>
 <body>
 <div class="center">
   {% if session.username %}
   <div class="top-right-menu">
-    <a href="/logout" class="logout-btn">로그아웃</a>
+    <a href="/logout" class="logout-btn">Log Out</a>
   </div>
-  <h1>안녕하세요, {{ session.username }}님</h1>
-  <button onclick="location.href='/plan'">학습 플래너 시작하기</button>
+  <h1>Welcome, {{ session.username }}</h1>
+  <button onclick="location.href='/plan'">Start Study Planner</button>
   {% else %}
-  <h1>학습 플래너에 오신 것을 환영합니다</h1>
-  <button onclick="location.href='/login'">로그인</button>
+  <h1>Welcome to Study Planner</h1>
+  <button onclick="location.href='/login'">Log In</button>
   {% endif %}
 </div>
 </body>

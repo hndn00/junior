@@ -34,7 +34,7 @@ def login():
             session['username'] = username
             return redirect(url_for("plan"))
         else:
-            return render_template("login.html", error="아이디 또는 비밀번호가 잘못되었습니다.", username=username)
+            return render_template("login.html", error="Incorrect username or password.", username=username)
 
     # GET 요청: 로그인 페이지 렌더링
     return render_template("login.html", error=None, username="")
@@ -49,7 +49,7 @@ def plan():
             weights = list(map(float, request.form.getlist("weight")))
 
             if len(names) == 0 or len(weights) == 0 or sum(weights) == 0:
-                return "입력 데이터가 잘못되었습니다. 다시 시도해주세요."
+                return "The input data is invalid. Please try again."
 
             total_weight = sum(weights)
             
@@ -68,7 +68,7 @@ def plan():
             
             return render_template("result.html", results=results)
         except Exception as e:
-            return f"오류가 발생했습니다: {e}"
+            return f"An error has occurred: {e}"
 
     return render_template("index.html")
 
