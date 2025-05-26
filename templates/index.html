@@ -23,23 +23,7 @@
         <button type="button" class="add-timetable-btn add-new-timetable-btn" onclick="openModal()">Load Timetable</button>
         <hr>
         <div id="subjects">
-            <div class="subject-item" id="subjectItem1">
-                <div class="subject-inputs">
-                    <label for="name1">Subject:</label>
-                    <input type="text" id="name1" name="name" required>
-
-                    <label for="major1">Major Course:</label>
-                    <input type="checkbox" id="major1" name="major" class="toggle-btn">
-
-                    <label for="weight1">Importance Level:</label>
-                    <input type="range" id="weight1" name="weight" min="0" max="100" step="1" value="50"
-                           oninput="updateSliderValue('sliderValue1', this.value)">
-                    <span id="sliderValue1">50</span>
-                </div>
-                <button type="button" class="remove-subject-btn" onclick="removeSubject('subjectItem1')">Remove</button>
-            </div>
         </div>
-        <button type="button" onclick="addSubject()">Add Subject</button><br><br>
         <button type="submit">Calculate Study Time</button>
     </form>
 
@@ -65,38 +49,24 @@
 </div>
 
 <script>
-    // 모달 창 열기
     function openModal() {
         document.getElementById('overlay').style.display = 'block';
         document.getElementById('modal').style.display = 'block';
     }
 
-    // 모달 창 닫기
     function closeModal() {
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('modal').style.display = 'none';
         document.getElementById('new_url').value = '';
     }
 
-    let subjectCount = 0; // 고유 ID 생성을 위한 카운터 (실제 과목 수와는 다를 수 있음)
+    let subjectCount = 0;
 
     document.addEventListener('DOMContentLoaded', function() {
-        const initialSubjects = document.querySelectorAll('#subjects .subject-item');
-        if (initialSubjects.length > 0) {
-            // 가장 큰 ID 번호를 찾아 subjectCount 설정 (더 견고한 방법)
-            let maxIdNum = 0;
-            initialSubjects.forEach(item => {
-                const idNum = parseInt(item.id.replace('subjectItem', ''));
-                if (idNum > maxIdNum) {
-                    maxIdNum = idNum;
-                }
-            });
-            subjectCount = maxIdNum;
-        } else {
-            addSubject(); // 초기에 아무 과목도 없으면 하나 추가
+        if (document.querySelectorAll('#subjects .subject-item').length === 0) {
+            addSubject(null); // 초기 아이템 추가 (기준점 없이)
         }
     });
-
 
     function updateSliderValue(spanId, value) {
         const spanElement = document.getElementById(spanId);
@@ -105,7 +75,7 @@
         }
     }
 
-    function addSubject(subjectName = '') { // 과목명을 인자로 받을 수 있도록 수정
+    function addSubject(afterElement, subjectName = '') {
         subjectCount++;
         const subjectItemId = `subjectItem${subjectCount}`;
         const nameId = `name${subjectCount}`;
@@ -115,7 +85,7 @@
 
         const div = document.createElement('div');
         div.classList.add('subject-item');
-        div.id = subjectItemId; // 각 subject-item div에 고유 ID 부여
+        div.id = subjectItemId;
 
         div.innerHTML = `
             <div class="subject-inputs">
@@ -130,17 +100,30 @@
                        oninput="updateSliderValue('${sliderValueId}', this.value)">
                 <span id="${sliderValueId}">50</span>
             </div>
-            <button type="button" class="remove-subject-btn" onclick="removeSubject('${subjectItemId}')">Remove</button>
+            <div class="subject-actions-container">
+                <div class="action-left">
+                    <button type="button" class="action-btn plus-style-button remove-btn" onclick="removeSubject('${subjectItemId}')">Remove</button>
+                </div>
+                <div class="action-right">
+                    <button type="button" class="action-btn plus-style-button add-below-btn" onclick="addSubject(this.closest('.subject-item'))">Add Below</button>
+                </div>
+            </div>
         `;
-        document.getElementById('subjects').appendChild(div);
+
+        const subjectsDiv = document.getElementById('subjects');
+        if (afterElement) {
+            // afterElement 다음 형제 위치에 div 삽입
+            // afterElement.nextSibling이 null이면 맨 뒤에 추가됨 (appendChild와 유사 효과)
+            afterElement.parentNode.insertBefore(div, afterElement.nextSibling);
+        } else {
+            subjectsDiv.appendChild(div); // 맨 뒤에 추가 (초기 호출 또는 afterElement가 없을 때)
+        }
     }
 
-    // 과목 입력 필드 제거 함수
     function removeSubject(subjectItemId) {
         const subjectItemToRemove = document.getElementById(subjectItemId);
+        const subjectsDiv = document.getElementById('subjects');
         if (subjectItemToRemove) {
-            // 최소 1개의 과목은 남겨두도록 처리 (선택적)
-            const subjectsDiv = document.getElementById('subjects');
             if (subjectsDiv.getElementsByClassName('subject-item').length > 1) {
                 subjectItemToRemove.remove();
             } else {
@@ -149,14 +132,12 @@
         }
     }
 
-
     function submitTimetableUrl() {
         const timetableUrl = document.getElementById('new_url').value;
         if (!timetableUrl) {
             alert('URL을 입력해주세요.');
             return;
         }
-
         const formData = new FormData();
         formData.append('new_url', timetableUrl);
 
@@ -166,26 +147,41 @@
         })
             .then(response => {
                 if (!response.ok) {
-                    return response.json().then(errData => {
-                        throw new Error(errData.error || `서버 오류가 발생했습니다. 상태 코드: ${response.status}`);
-                    });
+                    // 에러 응답을 JSON으로 파싱 시도
+                    return response.json()
+                        .then(errData => {
+                            // errData.error가 있으면 사용, 없으면 일반 메시지
+                            throw new Error(errData.error || `서버 오류가 발생했습니다. 상태 코드: ${response.status}`);
+                        })
+                        .catch(() => {
+                            // JSON 파싱 실패 시 (응답이 JSON이 아닐 경우)
+                            throw new Error(`서버 응답 오류. 상태 코드: ${response.status}`);
+                        });
                 }
-                return response.json();
+                return response.json(); // 성공 시 JSON 파싱
             })
             .then(data => {
                 console.log('서버 응답:', data);
                 if (data.error) {
                     alert('시간표 로딩 오류: ' + data.error);
+                    // 오류 발생 시 기존 목록을 비우지 않고, 새로운 항목을 추가하지도 않습니다.
+                    // 필요하다면 여기서 populateSubjectsFromTimetable([]) 호출을 유지할 수 있습니다.
                 } else if (data.timetable_slots && Array.isArray(data.timetable_slots)) {
                     populateSubjectsFromTimetable(data.timetable_slots);
                     closeModal();
-                    alert('시간표를 성공적으로 불러왔습니다!');
-                } else {
-                    alert('시간표 데이터를 불러오는데 실패했거나, 형식이 올바르지 않습니다.');
-                    if (data.timetable_slots && data.timetable_slots.length === 0 && data.message) {
+                    // 성공 메시지는 populate 후, 실제 데이터가 있는지 확인하고 표시하는 것이 더 좋을 수 있음
+                    if (data.timetable_slots.length > 0) {
+                        alert('시간표를 성공적으로 불러왔습니다!');
+                    } else if (data.message) { // 서버에서 빈 시간표에 대한 메시지를 보냈을 경우
                         alert(data.message);
+                    } else {
+                        alert('시간표는 불러왔으나, 포함된 과목이 없습니다.');
                     }
-                    populateSubjectsFromTimetable([]);
+                } else {
+                    // data.timetable_slots가 없거나 배열이 아닌 경우
+                    alert('시간표 데이터를 불러오는데 실패했거나, 형식이 올바르지 않습니다.');
+                    // 이 경우에도 기존 목록을 유지하거나, populateSubjectsFromTimetable([])를 호출할 수 있습니다.
+                    // 현재는 아무 작업도 하지 않아 기존 목록이 유지됩니다.
                 }
             })
             .catch(error => {
@@ -196,26 +192,31 @@
 
     function populateSubjectsFromTimetable(slots) {
         const subjectsDiv = document.getElementById('subjects');
-        subjectsDiv.innerHTML = ''; // 기존 과목 입력 필드 모두 제거
-        // subjectCount는 addSubject 내부에서 증가하므로 여기서 초기화할 필요 없음 (단, ID 충돌 방지 위해 addSubject에서 사용하는 subjectCount는 계속 증가하는 값이어야 함)
-        // 또는 여기서 subjectCount = 0; 으로 초기화하고 addSubject가 이 값을 사용하도록 수정
+        subjectsDiv.innerHTML = ''; // 기존 과목 모두 제거
+        subjectCount = 0;           // 카운터 초기화
 
         const uniqueSubjects = new Set();
-        slots.forEach(slot => {
-            if (slot[0] === '수업' && slot[1] && slot[1].trim() !== "N/A" && slot[1].trim() !== "") {
-                uniqueSubjects.add(slot[1].trim());
-            }
-        });
-
-        if (uniqueSubjects.size === 0) {
-            addSubject(); // 불러온 수업이 없으면 기본 빈 과목 필드 1개 추가
-            return;
+        if (Array.isArray(slots)) { // slots가 배열인지 한 번 더 확인
+            slots.forEach(slot => {
+                // slot[0]이 '수업'이고, slot[1] (과목명)이 유효한 문자열일 때 추가
+                if (slot && slot.length > 1 && slot[0] === '수업' && typeof slot[1] === 'string' && slot[1].trim() !== "N/A" && slot[1].trim() !== "") {
+                    uniqueSubjects.add(slot[1].trim());
+                }
+            });
         }
 
         uniqueSubjects.forEach(subjectName => {
-            addSubject(subjectName); // 수정된 addSubject 함수 호출
+            addSubject(null, subjectName); // 각 유니크한 과목을 리스트 끝에 추가
         });
+
+        // 모든 과목을 추가한 후, subjectsDiv에 아무런 .subject-item이 없다면,
+        // (즉, uniqueSubjects가 비어 있었거나, slots가 비정상적이어서 아무것도 추가되지 않았다면)
+        // 기본 빈 과목 입력 칸 하나를 추가합니다.
+        if (subjectsDiv.children.length === 0) {
+            addSubject(null);
+        }
     }
 </script>
+
 </body>
 </html>
