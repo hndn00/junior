@@ -3,201 +3,368 @@
 <head>
     <meta charset="UTF-8">
     <title>Study Time Allocation Result</title>
-    <link rel="stylesheet" href="/static/css/result_style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/result_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/full_schedule_style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); display: none;
+            align-items: center; justify-content: center; z-index: 2000;
+        }
+        .modal-content {
+            background-color: #fff; padding: 25px; border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4); width: 95%;
+            max-width: 1100px; max-height: 90vh; overflow-y: auto; position: relative;
+        }
+        .modal-close-btn {
+            position: absolute; top: 15px; right: 20px; font-size: 28px;
+            font-weight: bold; color: #777; background: none; border: none;
+            cursor: pointer; line-height: 1;
+        }
+        .modal-close-btn:hover { color: #333; }
+        .modal-footer { text-align: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee;}
+        .modal-footer button { margin: 0 8px; }
+
+        #popup-overlay { z-index: 1000; }
+        #popup-container {
+            background-color: white; padding: 20px; border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 90%;
+            max-width: 500px; max-height: 80vh; overflow-y: auto;
+        }
+        #timetableModalContent h1 { display: none; }
+        #timetableModalContent .back-button { display: none; }
+    </style>
 </head>
 <body>
 <div class="container">
     {% if session.username %}
         <div class="top-right-menu">
-            <a href="/logout" class="logout-btn">Log Out</a>
+            <a href="{{ url_for('logout') }}" class="logout-btn">Log Out</a>
         </div>
     {% endif %}
 
     <h2>Study Time Allocation Result</h2>
+    {% if error_message %}
+        <p style="color: red; text-align: center;">{{ error_message }}</p>
+    {% endif %}
+
     <div class="chart-container">
         <canvas id="timeDistributionChart"></canvas>
     </div>
-    <div id="subject-container">
-        <ul id="subject-list" style="display: none;">
-            {% for name, hours, minutes in results %}
-                <li><strong>{{ name }}</strong>: {{ hours }}h {{ minutes }}m</li>
-            {% endfor %}
-        </ul>
+
+    <div id="popup-overlay" class="modal-overlay" style="display: none;">
+        <div id="popup-container">
+            <h3>학습 시간 상세</h3>
+            <ul id="popup-list" style="list-style-type: none; padding: 0; margin: 0;">
+                {% if results_for_pie_chart and results_for_pie_chart|length > 0 %}
+                    {% for name, hours, minutes in results_for_pie_chart %}
+                        <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>{{ name }}</strong>: {{ hours }}시간 {{ minutes }}분</li>
+                    {% endfor %}
+                {% else %}
+                    <li id="no-details-message" style="padding: 8px 0;">표시할 상세 데이터가 없습니다.</li>
+                {% endif %}
+            </ul>
+            <button id="close-button" class="action-btn" style="margin-top: 20px; background-color: #dc3545;">Close</button>
+        </div>
     </div>
 
-    <script>
-        // Flask의 템플릿 데이터를 JavaScript 변수로 직접 변환
-        const chartLabels = [
-            {% for name, hours, minutes in results %}
-                "{{ name }}",
-            {% endfor %}
+    <div style="text-align: center; margin-top: 15px; margin-bottom: 15px;">
+        <button id="open-popup-button" class="action-btn">See More Details</button>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('plan') }}" class="action-btn">← Back to Study Planner</a>
+        {% if results_for_pie_chart and results_for_pie_chart|length > 0 and (results_for_pie_chart | map(attribute=1) | sum > 0 or results_for_pie_chart | map(attribute=2) | sum > 0) %}
+            <button type="button" id="viewFullTimetableBtn" class="action-btn" style="margin-left: 10px;">View Full Timetable 📅</button>
+        {% endif %}
+    </div>
+</div>
+
+<div id="timetableModalOverlay" class="modal-overlay">
+    <div class="modal-content">
+        <button type="button" class="modal-close-btn" id="closeTimetableModalBtn">&times;</button>
+        <div id="timetableModalContent"></div>
+        <div class="modal-footer">
+            <button type="button" id="saveTimetableImageBtn" class="action-btn" style="background-color: #28a745;">이미지로 저장</button>
+            <button type="button" id="closeTimetableModalFooterBtn" class="action-btn" style="background-color: #dc3545;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Flask에서 전달된 데이터를 JavaScript 전역 변수로 먼저 받음
+    const pieChartRawData = {{ results_for_pie_chart | tojson }};
+    const fullScheduleRawData = {{ full_schedule_raw_data | tojson }};
+
+    console.log("Initial Raw Pie Chart Data:", pieChartRawData);
+    console.log("Initial Raw Full Schedule Data:", fullScheduleRawData);
+
+    // 2. 모든 헬퍼 함수들 정의 (DOMContentLoaded 바깥)
+    function generateColors(count) {
+        const predefinedColors = [
+            'rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)',
+            'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)',
+            'rgba(199, 199, 199, 0.8)', 'rgba(83, 102, 255, 0.8)',
+            'rgba(78, 205, 196, 0.8)', 'rgba(255, 99, 255, 0.8)'
         ];
+        const backgroundColors = [];
+        const borderColors = [];
+        for (let i = 0; i < count; i++) {
+            const color = predefinedColors[i % predefinedColors.length];
+            backgroundColors.push(color);
+            borderColors.push(color.replace('0.8', '1'));
+        }
+        return { backgroundColors, borderColors };
+    }
 
-        const chartData = [
-            {% for name, hours, minutes in results %}
-                {{ hours + (minutes / 60) }},  // 차트 데이터용으로 다시 소수점 형식으로 변환
-            {% endfor %}
-        ];
+    function initializePieChart() {
+        console.log("Attempting to initialize Pie Chart with data:", pieChartRawData);
+        const canvas = document.getElementById('timeDistributionChart');
+        const chartContainer = document.querySelector('.chart-container');
 
-        // 색상 배열 생성 함수
-        function generateColors(count) {
-            const predefinedColors = [
-                'rgba(255, 99, 132, 0.7)',   // 빨강
-                'rgba(54, 162, 235, 0.7)',   // 파랑
-                'rgba(255, 206, 86, 0.7)',   // 노랑
-                'rgba(75, 192, 192, 0.7)',   // 청록
-                'rgba(153, 102, 255, 0.7)',  // 보라
-                'rgba(255, 159, 64, 0.7)',   // 주황
-                'rgba(199, 199, 199, 0.7)',  // 회색
-                'rgba(83, 102, 255, 0.7)',   // 남색
-                'rgba(78, 205, 196, 0.7)',   // 민트
-                'rgba(255, 99, 255, 0.7)'    // 분홍
-            ];
-
-            const backgroundColors = [];
-            const borderColors = [];
-
-            for (let i = 0; i < count; i++) {
-                const color = predefinedColors[i % predefinedColors.length];
-                backgroundColors.push(color);
-                borderColors.push(color.replace('0.7', '1'));
-            }
-
-            return { backgroundColors, borderColors };
+        if (!pieChartRawData || pieChartRawData.length === 0 || pieChartRawData.every(item => (item[1] + item[2]/60) === 0)) {
+            console.log("No data for pie chart or all values are zero.");
+            if (canvas) canvas.style.display = 'none';
+            const existingMsg = chartContainer.querySelector('.no-data-message');
+            if (existingMsg) existingMsg.remove();
+            const noDataMsg = document.createElement('p');
+            noDataMsg.textContent = '표시할 학습 시간 데이터가 없습니다.';
+            noDataMsg.className = 'no-data-message';
+            noDataMsg.style.textAlign = 'center';
+            noDataMsg.style.marginTop = '20px';
+            if (chartContainer) chartContainer.appendChild(noDataMsg);
+            return;
         }
 
-        // 차트 초기화 함수
-        function initializeChart() {
-            const canvas = document.getElementById('timeDistributionChart');
+        const existingMsg = chartContainer.querySelector('.no-data-message');
+        if (existingMsg) existingMsg.remove();
+        if (canvas) canvas.style.display = 'block';
 
-            if (!chartLabels.length || !chartData.length) {
-                canvas.style.display = 'none';
-                const noDataMsg = document.createElement('p');
-                noDataMsg.textContent = '표시할 데이터가 없습니다.';
-                noDataMsg.style.textAlign = 'center';
-                noDataMsg.style.marginTop = '20px';
-                canvas.parentNode.appendChild(noDataMsg);
-                return;
-            }
+        const chartLabels = pieChartRawData.map(item => item[0]);
+        const chartValues = pieChartRawData.map(item => item[1] + (item[2] / 60));
+        const colors = generateColors(chartLabels.length);
+        const ctx = canvas.getContext('2d');
 
-            const colors = generateColors(chartLabels.length);
-
-            // Chart.js 컨텍스트 설정
-            const ctx = canvas.getContext('2d');
-
-            // 차트 객체 생성 및 설정
-            const chart = new Chart(ctx, {
-                type: 'pie',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        data: chartData,
-                        backgroundColor: colors.backgroundColors,
-                        borderColor: colors.borderColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 14
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const hours = Math.floor(value);
-                                    const minutes = Math.round((value - hours) * 60);
-                                    return `${label}: ${hours}h ${minutes}m`;
-                                }
+        if (window.myPieChartInstance) {
+            window.myPieChartInstance.destroy();
+        }
+        window.myPieChartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: { labels: chartLabels, datasets: [{ data: chartValues, backgroundColor: colors.backgroundColors, borderColor: colors.borderColors, borderWidth: 1 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', labels: { font: { size: 14 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || ''; const value = context.raw || 0;
+                                const hours = Math.floor(value); const minutes = Math.round((value - hours) * 60);
+                                return `${label}: ${hours}h ${minutes}m`;
                             }
                         }
                     }
                 }
-            });
+            }
+        });
+        console.log("Pie Chart initialized successfully.");
+    }
+
+    function timeToMinutes(timeStr) {
+        if (!timeStr || !timeStr.includes(':')) return null;
+        try { const [h, m] = timeStr.split(':').map(Number); return h * 60 + m; }
+        catch (e) { console.error("Error in timeToMinutes:", e, "Input:", timeStr); return null; }
+    }
+
+    function minutesToTimeStr(minutes) {
+        if (minutes === null || minutes < 0) return "N/A";
+        const h = Math.floor(minutes / 60); const m = minutes % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+
+    function buildTimetableGrid(scheduleItemsData) {
+        console.log("Attempting to build timetable grid with data:", scheduleItemsData);
+        const timetableModalContent = document.getElementById("timetableModalContent");
+        if (!timetableModalContent) {
+            console.error("timetableModalContent element not found!");
+            return;
+        }
+        timetableModalContent.innerHTML = '';
+
+        if (!scheduleItemsData || !scheduleItemsData.all_schedule_items || scheduleItemsData.all_schedule_items.length === 0) {
+            timetableModalContent.innerHTML = '<p style="text-align:center;">시간표 데이터가 없습니다.</p>';
+            console.log("No schedule items to build grid.");
+            return;
+        }
+        const scheduleItems = scheduleItemsData.all_schedule_items;
+
+        const DAYS_ORDER = ["월요일", "화요일", "수요일", "목요일", "금요일"];
+        const timeIntervalsDisplay = []; const timeIntervalsMinutes = [];
+        let currentDisplayTimeMin = timeToMinutes("09:00");
+        const maxDisplayTimeMin = timeToMinutes("18:00");
+        const intervalDurationMin = 30;
+
+        while (currentDisplayTimeMin < maxDisplayTimeMin) {
+            timeIntervalsDisplay.push(minutesToTimeStr(currentDisplayTimeMin));
+            timeIntervalsMinutes.push(currentDisplayTimeMin);
+            currentDisplayTimeMin += intervalDurationMin;
         }
 
-        // 페이지 로드 완료 후 차트 초기화
-        window.addEventListener('load', function() {
-            initializeChart();
+        const scheduleGrid = {};
+        timeIntervalsDisplay.forEach(timeStr => {
+            scheduleGrid[timeStr] = {};
+            DAYS_ORDER.forEach(day => scheduleGrid[timeStr][day] = null);
         });
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const subjectList = document.getElementById("subject-list");
-            const toggleButton = document.getElementById("toggle-button");
 
-            toggleButton.addEventListener("click", function () {
-                if (subjectList.style.display === "none") {
-                    // 리스트가 숨겨져 있으면 표시하고 버튼 텍스트 변경
-                    subjectList.style.display = "block";
-                    toggleButton.textContent = "숨기기";
-                } else {
-                    // 리스트가 표시되어 있으면 숨기고 버튼 텍스트 변경
-                    subjectList.style.display = "none";
-                    toggleButton.textContent = "See More";
-                }
-            });
-        });
-    </script>
-    <!-- 팝업 오버레이 -->
-    <div id="popup-overlay" style="display: none;">
-        <div id="popup-container">
-            <ul id="popup-list">
-                {% for name, hours, minutes in results %}
-                    <li><strong>{{ name }}</strong>: {{ hours }}h {{ minutes }}m</li>
-                {% endfor %}
-            </ul>
-            <button id="close-button" class="action-btn">Close</button>
-        </div>
-    </div>
-    <!-- "더보기" 버튼 (Back to Study Planner 위로 이동) -->
-    <button id="open-popup-button" class="action-btn">See More</button>
+        scheduleItems.forEach(item => {
+            const itemStartMin = timeToMinutes(item.start_time);
+            const itemEndMin = timeToMinutes(item.end_time);
+            const day = item.day;
 
-    <div class="action-buttons">
-        <a href="/plan" class="action-btn">Back to Study Planner</a>
+            if (!DAYS_ORDER.includes(day) || itemStartMin === null || itemEndMin === null) return;
+            const durationMin = itemEndMin - itemStartMin;
+            if (durationMin <= 0) return;
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const overlay = document.getElementById("popup-overlay");
-                const popupContainer = document.getElementById("popup-container");
-                const openPopupButton = document.getElementById("open-popup-button");
-                const closeButton = document.getElementById("close-button");
+            item.rowspan = Math.max(1, Math.floor(durationMin / intervalDurationMin));
 
-                // 팝업 열기
-                openPopupButton.addEventListener("click", function () {
-                    overlay.style.display = "flex"; // 오버레이 표시
-                    setTimeout(() => {
-                        overlay.classList.add("active"); // 오버레이 애니메이션 활성화
-                        popupContainer.classList.add("active"); // 팝업 애니메이션 활성화
-                    }, 10); // 약간의 지연으로 애니메이션 효과 부드럽게
-                });
-
-                // 팝업 닫기
-                closeButton.addEventListener("click", function () {
-                    popupContainer.classList.remove("active"); // 팝업 닫기
-                    overlay.classList.remove("active"); // 오버레이 제거
-                    setTimeout(() => {
-                        overlay.style.display = "none"; // 오버레이 완전 숨김
-                    }, 400); // CSS 애니메이션과 동일한 시간
-                });
-
-                // 오버레이 클릭 시 팝업 닫기 (선택 사항)
-                overlay.addEventListener("click", function (e) {
-                    if (e.target === overlay) {
-                        closeButton.click();
+            const startIndex = timeIntervalsMinutes.indexOf(itemStartMin);
+            if (startIndex !== -1 && startIndex < timeIntervalsDisplay.length) {
+                const startTimeStr = timeIntervalsDisplay[startIndex];
+                if (scheduleGrid[startTimeStr] && scheduleGrid[startTimeStr][day] === null) {
+                    scheduleGrid[startTimeStr][day] = item;
+                    for (let r = 1; r < item.rowspan; r++) {
+                        if ((startIndex + r) < timeIntervalsDisplay.length) {
+                            const coveredTimeStr = timeIntervalsDisplay[startIndex + r];
+                            if(scheduleGrid[coveredTimeStr]) scheduleGrid[coveredTimeStr][day] = "covered";
+                        }
                     }
-                });
+                }
+            }
+        });
+
+        const table = document.createElement('table'); table.className = 'timetable';
+        const thead = table.createTHead(); const headerRow = thead.insertRow();
+        const timeHeaderCell = document.createElement('th'); timeHeaderCell.className = 'time-header';
+        timeHeaderCell.textContent = '시간'; headerRow.appendChild(timeHeaderCell);
+        DAYS_ORDER.forEach(day => { const th = document.createElement('th'); th.textContent = day; headerRow.appendChild(th); });
+
+        const tbody = table.createTBody();
+        timeIntervalsDisplay.forEach(timeStr => {
+            const row = tbody.insertRow();
+            const timeCell = row.insertCell(); timeCell.className = 'time-cell'; timeCell.textContent = timeStr;
+            DAYS_ORDER.forEach(day => {
+                const cellItem = scheduleGrid[timeStr] ? scheduleGrid[timeStr][day] : null;
+                if (cellItem && cellItem !== "covered") {
+                    const td = row.insertCell(); td.rowSpan = cellItem.rowspan || 1;
+                    td.className = `schedule-item item-${cellItem.type}`;
+                    td.style.backgroundColor = cellItem.color !== 'transparent' ? cellItem.color : '';
+                    const strong = document.createElement('strong'); strong.textContent = cellItem.subject_name; td.appendChild(strong);
+                    const detailsDiv = document.createElement('div'); detailsDiv.className = 'details';
+                    if (cellItem.type === 'class') {
+                        if (cellItem.professor) { const s = document.createElement('small'); s.textContent = cellItem.professor; detailsDiv.appendChild(s); detailsDiv.appendChild(document.createElement('br')); }
+                        if (cellItem.place) { const s = document.createElement('small'); s.textContent = cellItem.place; detailsDiv.appendChild(s); }
+                    } else if (cellItem.type === 'study' && cellItem.place) {
+                        const s = document.createElement('small'); s.textContent = cellItem.place; detailsDiv.appendChild(s);
+                    }
+                    if(detailsDiv.hasChildNodes()) td.appendChild(detailsDiv);
+                } else if (cellItem === null) { row.insertCell(); }
             });
-        </script>
+        });
+        timetableModalContent.appendChild(table);
+        console.log("Timetable grid built and appended.");
+    }
+
+    // 3. DOMContentLoaded 리스너
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM fully loaded. Initializing components.");
+
+        // 파이 차트 초기화 호출
+        initializePieChart();
+
+        // "View Full Timetable" 모달 관련
+        const viewFullTimetableBtn = document.getElementById("viewFullTimetableBtn");
+        const timetableModalOverlay = document.getElementById("timetableModalOverlay");
+        const closeTimetableModalBtn = document.getElementById("closeTimetableModalBtn");
+        const closeTimetableModalFooterBtn = document.getElementById("closeTimetableModalFooterBtn");
+        const saveTimetableImageBtn = document.getElementById("saveTimetableImageBtn");
+
+        if (viewFullTimetableBtn) {
+            viewFullTimetableBtn.addEventListener("click", function() {
+                console.log("'View Full Timetable' button clicked. Raw data:", fullScheduleRawData);
+                buildTimetableGrid(fullScheduleRawData); // 데이터로 시간표 생성
+                if (timetableModalOverlay) timetableModalOverlay.style.display = "flex";
+            });
+        } else { console.error("'viewFullTimetableBtn' not found."); }
+
+        function closeTimetableModal() { if (timetableModalOverlay) timetableModalOverlay.style.display = "none"; }
+        if (closeTimetableModalBtn) closeTimetableModalBtn.addEventListener("click", closeTimetableModal);
+        else { console.error("'closeTimetableModalBtn' not found."); }
+
+        if (closeTimetableModalFooterBtn) closeTimetableModalFooterBtn.addEventListener("click", closeTimetableModal);
+        else { console.error("'closeTimetableModalFooterBtn' not found."); }
+
+        if (timetableModalOverlay) {
+            timetableModalOverlay.addEventListener("click", function(event) {
+                if (event.target === timetableModalOverlay) closeTimetableModal();
+            });
+        } else { console.error("'timetableModalOverlay' not found."); }
+
+        if (saveTimetableImageBtn) {
+            saveTimetableImageBtn.addEventListener("click", function() {
+                const timetableElement = document.getElementById('timetableModalContent').querySelector('.timetable');
+                if (timetableElement && typeof html2canvas === 'function') {
+                    html2canvas(timetableElement, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' })
+                        .then(canvas => {
+                            const image = canvas.toDataURL("image/png");
+                            const link = document.createElement('a'); link.download = 'my_timetable.png';
+                            link.href = image; link.click();
+                        }).catch(err => { console.error("Error generating image: ", err); alert("이미지 생성 중 오류가 발생했습니다."); });
+                } else { alert("시간표를 저장할 수 없습니다."); }
+            });
+        } else { console.error("'saveTimetableImageBtn' not found."); }
+
+        // "See More Details" 팝업 로직
+        const detailsOverlay = document.getElementById("popup-overlay");
+        const openDetailsPopupButton = document.getElementById("open-popup-button");
+        const closeDetailsButton = document.getElementById("close-button");
+
+        if (openDetailsPopupButton) {
+            openDetailsPopupButton.style.display = 'inline-block'; // 일단 버튼 보이게
+            let hasDataForDetailsPopup = false;
+            if (typeof pieChartRawData !== 'undefined' && pieChartRawData && pieChartRawData.length > 0) {
+                hasDataForDetailsPopup = pieChartRawData.some(item => (item[1] > 0 || item[2] > 0));
+            }
+            console.log("Data for 'See More Details' popup (pieChartRawData):", pieChartRawData);
+            console.log("Has data for 'See More Details' popup:", hasDataForDetailsPopup);
+
+            if (hasDataForDetailsPopup) {
+                openDetailsPopupButton.disabled = false; openDetailsPopupButton.style.opacity = "1";
+                openDetailsPopupButton.title = "학습 시간 상세 보기";
+                openDetailsPopupButton.addEventListener("click", function () {
+                    if (detailsOverlay) detailsOverlay.style.display = "flex";
+                });
+            } else {
+                openDetailsPopupButton.disabled = true; openDetailsPopupButton.style.opacity = "0.5";
+                openDetailsPopupButton.title = "표시할 상세 내용이 없습니다.";
+            }
+        } else { console.error("'open-popup-button' NOT FOUND!"); }
+
+        if (closeDetailsButton) {
+            closeDetailsButton.addEventListener("click", function () {
+                if (detailsOverlay) detailsOverlay.style.display = "none";
+            });
+        } else { console.error("'close-button' for details popup NOT FOUND!"); }
+
+        if (detailsOverlay) {
+            detailsOverlay.addEventListener("click", function (e) {
+                if (e.target === detailsOverlay && closeDetailsButton) closeDetailsButton.click();
+            });
+        } else { console.error("'popup-overlay' for details NOT FOUND!"); }
+    });
+</script>
 </body>
 </html>
