@@ -1,94 +1,138 @@
-from flask import Flask, request, render_template, redirect, url_for, session
-from urllib.parse import urlparse
-import xml.etree.ElementTree as ElementTree
+import os
+import json
+import torch
 import requests
+import xml.etree.ElementTree as ET
+from urllib.parse import urlparse
 
-# everytime.py와 convert.py가 같은 디렉토리에 있다고 가정합니다.
+from flask import (
+    Flask, request, render_template,
+    redirect, url_for, session, jsonify
+)
+
+from models.timetable_nn import TimetableDataset, TimetableNet
 from everytime import Everytime
 from convert import Convert
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"  # 실제 사용 시 복잡한 키로 변경하세요
+app.secret_key = "your_secret_key_here"
 
-# 간단한 사용자 인증 정보
+# 간단 로그인 정보
 USER_CREDENTIALS = {
-    "admin": "helloai",  # 아이디: 비밀번호
+    "admin": "helloai",
 }
 
-# every2cal.py의 HH:MM을 분으로 변환하는 헬퍼 함수
+# 모델 파일 위치
+BASE_DIR   = os.path.abspath(os.path.dirname(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "models", "model.pt")
+
+
 def time_to_minutes(time_str):
-    """HH:MM 형식의 시간 문자열을 자정으로부터의 분으로 변환합니다."""
+    """HH:MM → 자정부터 분."""
     if not time_str or ':' not in time_str:
         return None
-    try:
-        h, m = map(int, time_str.split(':'))
-        return h * 60 + m
-    except ValueError:
-        return None
+    h, m = map(int, time_str.split(':'))
+    return h * 60 + m
 
-# every2cal.py의 분을 HH:MM으로 변환하는 헬퍼 함수
+
 def minutes_to_time_str(minutes):
-    """자정으로부터의 분을 HH:MM 형식의 시간 문자열로 변환합니다."""
+    """분 → HH:MM."""
     if minutes is None or minutes < 0:
         return "N/A"
     h = minutes // 60
     m = minutes % 60
     return f"{h:02d}:{m:02d}"
 
-# 첫 화면: main.html
+
 @app.route("/")
 def main():
     return render_template("main.html")
 
-# 로그아웃 처리
+
 @app.route("/logout")
 def logout():
     session.pop('username', None)
     return redirect(url_for("login"))
 
-# 로그인 처리 페이지
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
-        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
-            session['username'] = username
+        u = request.form.get("username")
+        p = request.form.get("password")
+        if u in USER_CREDENTIALS and USER_CREDENTIALS[u] == p:
+            session['username'] = u
             return redirect(url_for("plan"))
-        else:
-            return render_template("login.html", error="Incorrect username or password.", username=username)
+        return render_template("login.html", error="Incorrect username or password.", username=u)
     return render_template("login.html", error=None, username="")
 
-# 학습 플래너 페이지
+
 @app.route("/plan", methods=["GET", "POST"])
 def plan():
     if request.method == "POST":
-        # 기존 학습 플래너 계산 로직은 그대로 유지합니다.
+        # 1) 숨은 필드에서 slots JSON 불러오기
+        slots_json = request.form.get("timetable_slots", "")
+        if not slots_json:
+            return "시간표 정보가 없습니다. 먼저 Load Timetable 해주세요.", 400
         try:
-            total_hours = float(request.form.get("total_hours"))
-            names = request.form.getlist("name")
-            weights = list(map(float, request.form.getlist("weight")))
+            timetable_slots = json.loads(slots_json)
+        except json.JSONDecodeError:
+            return "시간표 데이터 파싱 실패", 400
 
-            if len(names) == 0 or len(weights) == 0 or sum(weights) == 0:
-                return "The input data is invalid. Please try again."
+        # 2) 과목명, 중요도, 전공 여부 읽기
+        names      = request.form.getlist("name")
+        weights    = list(map(float, request.form.getlist("weight")))
+        majors_raw = request.form.getlist("major")  # 체크박스 name="major"
+        major_flags = [1.0 if v == "on" else 0.0 for v in majors_raw]
+        # padding
+        if len(major_flags) < len(weights):
+            major_flags += [0.0] * (len(weights) - len(major_flags))
 
-            total_weight = sum(weights)
+        if not names or not weights or sum(weights) == 0:
+            return "입력 데이터가 올바르지 않습니다.", 400
 
-            def convert_to_hours_minutes(decimal_hours):
-                hours = int(decimal_hours)
-                minutes = int((decimal_hours - hours) * 60)
-                return hours, minutes
+        # 전공 과목 +50% 가중치
+        adjusted_weights = [
+            w * (1.0 + mf * 0.5)
+            for w, mf in zip(weights, major_flags)
+        ]
 
-            results = []
-            for name, weight in zip(names, weights):
-                decimal_hours = (weight / total_weight) * total_hours
-                hours, minutes = convert_to_hours_minutes(decimal_hours)
-                results.append((name, hours, minutes))
+        # 3) 체크포인트 로드 → 저장된 num_subjects 추출
+        checkpoint = torch.load(MODEL_PATH, map_location="cpu")
+        num_subjects_saved = checkpoint['net.4.weight'].size(0)
 
-            return render_template("result.html", results=results)
-        except Exception as e:
-            return f"An error has occurred: {e}"
+        # 4) Dataset 생성 & input_dim 결정
+        dataset = TimetableDataset(timetable_slots, names, adjusted_weights)
+        input_dim = dataset.inputs.shape[1]
 
+        # 5) 모델 초기화 및 가중치 로드
+        model = TimetableNet(input_dim=input_dim,
+                             hidden_dim=64,
+                             num_subjects=num_subjects_saved)
+        model.load_state_dict(checkpoint)
+        model.eval()
+
+        # 6) 추론
+        with torch.no_grad():
+            logits = model(dataset.inputs)
+            preds  = torch.argmax(logits, dim=1).tolist()
+
+        # 7) “공강” 구간별 추천 스케줄 생성
+        schedule_entries = []
+        for slot, p in zip(timetable_slots, preds):
+            kind, _, day, st, ed = slot
+            if kind == "공강" and 0 <= p < len(names):
+                schedule_entries.append({
+                    "day": day,
+                    "start": st,
+                    "end": ed,
+                    "subject": names[p]
+                })
+
+        return render_template("schedule.html",
+                               schedule_entries=schedule_entries)
+
+    # GET
     return render_template("index.html")
 
 
@@ -96,136 +140,113 @@ def plan():
 def process_timetable():
     timetable_url = request.form.get("new_url")
     if not timetable_url:
-        error_response = {"error": "URL이 필요합니다."}
-        print("Responding with error:", error_response) # 콘솔 로그 추가
-        return error_response, 400
+        return jsonify({"error": "URL이 필요합니다."}), 400
 
-    timetable_id = ""
-    xml_data = "" # xml_data를 try 블록 외부에서 초기화
     try:
-        parsed_url = urlparse(timetable_url)
-        if parsed_url.netloc == "everytime.kr" and parsed_url.path and parsed_url.path.startswith("/@"):
-            timetable_id = parsed_url.path.split('/@')[-1]
-        elif not parsed_url.scheme and not parsed_url.netloc and timetable_url: # 아마도 raw ID일 경우
+        parsed = urlparse(timetable_url)
+        if parsed.netloc == "everytime.kr" and parsed.path.startswith("/@"):
+            timetable_id = parsed.path.split("/@")[-1]
+        elif not parsed.scheme and not parsed.netloc:
             timetable_id = timetable_url
+        else:
+            return jsonify({"error": "유효하지 않은 URL 또는 ID"}), 400
 
-        if not timetable_id:
-            error_response = {"error": "유효하지 않은 에브리타임 URL 또는 ID 형식입니다."}
-            print("Responding with error:", error_response) # 콘솔 로그 추가
-            return error_response, 400
-
-        # 1. 에브리타임에서 XML 데이터 가져오기
+        # 1) XML 가져오기
         e = Everytime(timetable_id)
         xml_data = e.get_timetable()
-
         if not xml_data or "<error>" in xml_data.lower() or "<code>-1</code>" in xml_data.lower():
-            app.logger.warning(f"ID {timetable_id}에 대한 유효한 시간표 XML을 가져오지 못했습니다. 응답: {xml_data[:200]}")
-            error_response = {"error": "시간표 XML을 가져오지 못했습니다. ID가 잘못되었거나 시간표가 비공개 또는 비어있을 수 있습니다."}
-            print("Responding with error:", error_response) # 콘솔 로그 추가
-            return error_response, 400
+            return jsonify({"error": "시간표 XML을 가져오지 못했습니다."}), 400
 
-
-        # 2. Convert 클래스를 사용하여 과목 가져오기
+        # 2) XML → subjects
         c = Convert(xml_data)
         subjects = c.get_subjects()
-
         if not subjects:
-            response_data = {"timetable_slots": [], "message": "시간표에서 과목 정보를 찾을 수 없습니다."}
-            print("Responding with:", response_data) # 콘솔 로그 추가
-            return response_data
+            return jsonify({
+                "timetable_slots": [],
+                "message": "과목 정보를 찾을 수 없습니다."
+            })
 
-        # 3. 수업 시간 및 공강 시간 계산
+        # 3) 수업/공강 슬롯 계산
         day_map = {
-            "0": "월요일", "1": "화요일", "2": "수요일", "3": "목요일",
-            "4": "금요일", "5": "토요일", "6": "일요일"
+            "0": "월요일", "1": "화요일", "2": "수요일",
+            "3": "목요일", "4": "금요일", "5": "토요일", "6": "일요일"
         }
-        free_slot_calc_start_minutes = time_to_minutes("09:00")
-        free_slot_calc_end_minutes = time_to_minutes("21:00")
-
+        free_start = time_to_minutes("09:00")
+        free_end   = time_to_minutes("21:00")
         timetable_results = []
 
-        for subject in subjects:
-            subject_name = subject.get("name", "N/A")
-            for session_info in subject.get("info", []):
-                day_numeric = session_info.get("day")
-                start_time_str = session_info.get("startAt")
-                end_time_str = session_info.get("endAt")
+        # 수업 슬롯
+        for subj in subjects:
+            name = subj.get("name", "N/A")
+            for info in subj.get("info", []):
+                d, s, e = info.get("day"), info.get("startAt"), info.get("endAt")
+                if d in day_map and s and e:
+                    if time_to_minutes(s) is not None and time_to_minutes(e) is not None:
+                        timetable_results.append((
+                            "수업", name, day_map[d], s, e
+                        ))
 
-                if day_numeric in day_map and start_time_str and end_time_str:
-                    if time_to_minutes(start_time_str) is not None and time_to_minutes(end_time_str) is not None:
-                        timetable_results.append(
-                            ("수업", subject_name, day_map[day_numeric], start_time_str, end_time_str)
-                        )
+        # 공강 슬롯
+        for d in sorted(day_map.keys()):
+            day_name = day_map[d]
+            day_classes = []
+            for subj in subjects:
+                for info in subj.get("info", []):
+                    if info.get("day") == d:
+                        s = time_to_minutes(info.get("startAt"))
+                        e = time_to_minutes(info.get("endAt"))
+                        if s is not None and e is not None and s < e:
+                            if e > free_start and s < free_end:
+                                day_classes.append((s, e))
+            day_classes.sort(key=lambda x: x[0])
 
-        for day_numeric_str in sorted(day_map.keys()):
-            day_name = day_map[day_numeric_str]
-
-            todays_relevant_classes = []
-            for subject_details in subjects:
-                for session_info in subject_details.get("info", []):
-                    if session_info.get("day") == day_numeric_str:
-                        s_mins = time_to_minutes(session_info.get("startAt"))
-                        e_mins = time_to_minutes(session_info.get("endAt"))
-                        if s_mins is not None and e_mins is not None and s_mins < e_mins:
-                            if e_mins > free_slot_calc_start_minutes and s_mins < free_slot_calc_end_minutes:
-                                todays_relevant_classes.append((s_mins, e_mins))
-
-            todays_relevant_classes.sort(key=lambda x: x[0])
-
-            last_class_end_processed_minutes = free_slot_calc_start_minutes
-
-            if not todays_relevant_classes:
-                if free_slot_calc_end_minutes > free_slot_calc_start_minutes:
-                    start_str = minutes_to_time_str(free_slot_calc_start_minutes)
-                    end_str = minutes_to_time_str(free_slot_calc_end_minutes)
-                    timetable_results.append(("공강", "", day_name, start_str, end_str))
+            last_end = free_start
+            if not day_classes:
+                if free_end > free_start:
+                    timetable_results.append((
+                        "공강", "", day_name,
+                        minutes_to_time_str(free_start),
+                        minutes_to_time_str(free_end)
+                    ))
             else:
-                for class_start_minutes, class_end_minutes in todays_relevant_classes:
-                    effective_class_segment_start = max(class_start_minutes, free_slot_calc_start_minutes)
-                    effective_class_segment_end = min(class_end_minutes, free_slot_calc_end_minutes)
+                for s, e in day_classes:
+                    seg_s = max(s, free_start)
+                    seg_e = min(e, free_end)
+                    if seg_s > last_end:
+                        timetable_results.append((
+                            "공강", "", day_name,
+                            minutes_to_time_str(last_end),
+                            minutes_to_time_str(seg_s)
+                        ))
+                    last_end = max(last_end, seg_e)
+                if last_end < free_end:
+                    timetable_results.append((
+                        "공강", "", day_name,
+                        minutes_to_time_str(last_end),
+                        minutes_to_time_str(free_end)
+                    ))
 
-                    if effective_class_segment_start > last_class_end_processed_minutes:
-                        start_str = minutes_to_time_str(last_class_end_processed_minutes)
-                        end_str = minutes_to_time_str(effective_class_segment_start)
-                        timetable_results.append(("공강", "", day_name, start_str, end_str))
+        # 정렬
+        def sort_key(item):
+            typ, _, day_nm, s, _ = item
+            order = {
+                "월요일": 0, "화요일": 1, "수요일": 2,
+                "목요일": 3, "금요일": 4, "토요일": 5, "일요일": 6
+            }
+            s_min = time_to_minutes(s) or float('inf')
+            return (order.get(day_nm, 7), s_min, 0 if typ == "공강" else 1)
 
-                    last_class_end_processed_minutes = max(last_class_end_processed_minutes, effective_class_segment_end)
+        timetable_results.sort(key=sort_key)
+        response = {"timetable_slots": timetable_results}
+        print("Responding with:", response)
+        return jsonify(response)
 
-                if last_class_end_processed_minutes < free_slot_calc_end_minutes:
-                    start_str = minutes_to_time_str(last_class_end_processed_minutes)
-                    end_str = minutes_to_time_str(free_slot_calc_end_minutes)
-                    timetable_results.append(("공강", "", day_name, start_str, end_str))
-
-        def sort_key_final(item_tuple):
-            type_val, name_val, day_name_val, start_str_val, end_str_val = item_tuple
-            day_order = {"월요일": 0, "화요일": 1, "수요일": 2, "목요일": 3, "금요일": 4, "토요일": 5, "일요일": 6}
-            day_idx = day_order.get(day_name_val, 7)
-            start_minutes_val = time_to_minutes(start_str_val)
-            if start_minutes_val is None: start_minutes_val = float('inf')
-            type_order = 0 if type_val == "공강" else 1
-            return (day_idx, start_minutes_val, type_order)
-
-        timetable_results.sort(key=sort_key_final)
-
-        response_data = {"timetable_slots": timetable_results}
-        print("Responding with:", response_data) # 콘솔 로그 추가
-        return response_data
-
-    except ElementTree.ParseError as e_xml:
-        app.logger.error(f"ID {timetable_id}에 대한 XML 파싱 오류: {e_xml}\nXML 데이터: {xml_data[:500]}")
-        error_response = {"error": "에브리타임의 XML 데이터가 유효하지 않습니다. 시간표가 비어 있거나 형식이 잘못되었을 수 있습니다."}
-        print("Responding with error:", error_response) # 콘솔 로그 추가
-        return error_response, 500
-    except requests.exceptions.RequestException as e_req:
-        app.logger.error(f"ID {timetable_id} 시간표 가져오기 네트워크 오류: {e_req}")
-        error_response = {"error": f"시간표 가져오기 네트워크 오류: {str(e_req)}"}
-        print("Responding with error:", error_response) # 콘솔 로그 추가
-        return error_response, 500
-    except Exception as e_generic:
-        app.logger.error(f"ID {timetable_id} 시간표 처리 중 오류 발생: {e_generic}", exc_info=True)
-        error_response = {"error": f"예상치 못한 오류가 발생했습니다: {str(e_generic)}"}
-        print("Responding with error:", error_response) # 콘솔 로그 추가
-        return error_response, 500
+    except ET.ParseError:
+        return jsonify({"error": "XML 파싱 오류"}), 500
+    except requests.RequestException as e:
+        return jsonify({"error": f"네트워크 오류: {e}"}), 500
+    except Exception as e:
+        return jsonify({"error": f"예기치 못한 오류: {e}"}), 500
 
 
 if __name__ == "__main__":

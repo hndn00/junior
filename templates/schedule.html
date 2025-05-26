@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Your Study Schedule</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+<div class="container">
+    <h1>Recommended Study Schedule</h1>
+    {% if schedule_entries %}
+        <table class="schedule-table">
+            <thead>
+            <tr>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Subject</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for e in schedule_entries %}
+                <tr>
+                    <td>{{ e.day }}</td>
+                    <td>{{ e.start }} – {{ e.end }}</td>
+                    <td>{{ e.subject }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No free slots were assigned.</p>
+    {% endif %}
+    <div class="back-link">
+        <a href="{{ url_for('plan') }}">← Back to Planner</a>
+    </div>
+</div>
+</body>
+</html>
