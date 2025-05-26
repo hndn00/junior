@@ -113,9 +113,10 @@
                 <label for="major1">Major Course:</label>
                 <input type="checkbox" id="major1" name="major" class="toggle-btn">
 
-                <label for="weight1">Importance Level:</label>
-                <input type="range" id="weight1" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue1', this.value)">
-                <span id="sliderValue1">0.5</span>
+                <!-- 중요도 슬라이더 -->
+                <input type="range" id="weight1" name="weight" min="0" max="100" step="1" value="50" 
+                       oninput="updateSliderValue('sliderValue1', this.value)">
+                <span id="sliderValue1">50</span>
             </div>
         </div>
         <button type="button" onclick="addSubject()">Add Subject</button><br><br>
@@ -171,17 +172,24 @@
         const div = document.createElement('div');
         div.classList.add('subject-item');
         div.innerHTML = `
-                <label for="name${subjectCount}">Subject:</label>
-                <input type="text" id="name${subjectCount}" name="name" required>
+        <label for="name${subjectCount}">Subject:</label>
+        <input type="text" id="name${subjectCount}" name="name" required>
 
-                <label for="major${subjectCount}">Major Course:</label>
-                <input type="checkbox" id="major${subjectCount}" name="major" class="toggle-btn">
+        <label for="major${subjectCount}">Major Course:</label>
+        <input type="checkbox" id="major${subjectCount}" name="major" class="toggle-btn">
 
-                <label for="weight${subjectCount}">Importance Level:</label>
-                <input type="range" id="weight${subjectCount}" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue${subjectCount}', this.value)">
-                <span id="sliderValue${subjectCount}">0.5</span>
-            `;
+        <label for="weight${subjectCount}">Importance Level:</label>
+        <input type="range" id="weight${subjectCount}" name="weight" min="0" max="100" step="1" value="50" 
+               oninput="updateSliderValue('sliderValue${subjectCount}', this.value)">
+        <span id="sliderValue${subjectCount}">50</span>
+    `;
         document.getElementById('subjects').appendChild(div);
+    }
+</script>
+<script>
+    // 슬라이더 값 업데이트 함수 (0~100 사이 값 표시)
+    function updateSliderValue(spanId, value) {
+        document.getElementById(spanId).innerText = value;
     }
 </script>
 </body>
