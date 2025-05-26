@@ -6,6 +6,37 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+<style>
+    .toggle-btn {
+        appearance: none;
+        width: 50px; /* 버튼 크기 조정 */
+        height: 25px; /* 버튼 크기 조정 */
+        border-radius: 12.5px;
+        background-color: #ccc;
+        position: relative;
+        outline: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .toggle-btn:checked {
+        background-color: #87ceeb; /* 하늘색과 어울리는 색상 (Light Blue) */
+    }
+    .toggle-btn:before {
+        content: '';
+        position: absolute;
+        width: 20px; /* 버튼 크기에 맞춰 고정 */
+        height: 20px; /* 버튼 크기에 맞춰 고정 */
+        border-radius: 50%;
+        background-color: white;
+        top: 2.5px; /* 위 여백 간격 */
+        left: 2.5px;
+        transition: all 0.3s ease;
+    }
+    .toggle-btn:checked:before {
+        left: 27.5px; /* checked 상태에서 이동 */
+    }
+</style>
+
 <div class="container">
     {% if session.username %}
     <div class="top-right-menu">
@@ -20,15 +51,20 @@
             <input type="number" id="total_hours" name="total_hours" step="0.1" required>
         </div>
         <hr>
-        <div id="subjects">
-            <div class="subject-item">
-                <label for="name1">Subject:</label>
-                <input type="text" id="name1" name="name" required>
-                <label for="weight1">Importance Level:</label>
-                <input type="range" id="weight1" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue1', this.value)">
-                <span id="sliderValue1">0.5</span>
-            </div>
-        </div>
+        
+<div id="subjects">
+    <div class="subject-item">
+        <label for="name1">Subject:</label>
+        <input type="text" id="name1" name="name" required>
+
+        <label for="major1">Major Course:</label>
+        <input type="checkbox" id="major1" name="major" class="toggle-btn">
+
+        <label for="weight1">Importance Level:</label>
+        <input type="range" id="weight1" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue1', this.value)">
+        <span id="sliderValue1">0.5</span>
+    </div>
+</div>
         <button type="button" onclick="addSubject()">Add Subject</button><br><br>
         <button type="submit">Calculate Study Time</button>
     </form>
@@ -56,6 +92,10 @@
         div.innerHTML = `
                 <label for="name${subjectCount}">Subject:</label>
                 <input type="text" id="name${subjectCount}" name="name" required>
+
+                <label for="major${subjectCount}">Major Course:</label>
+                <input type="checkbox" id="major${subjectCount}" name="major" class="toggle-btn">
+
                 <label for="weight${subjectCount}">Importance Level:</label>
                 <input type="range" id="weight${subjectCount}" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue${subjectCount}', this.value)">
                 <span id="sliderValue${subjectCount}">0.5</span>
