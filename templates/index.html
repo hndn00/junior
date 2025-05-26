@@ -43,7 +43,7 @@
 
         /* 'Add New Timetable' 버튼 스타일 */
         .add-timetable-btn {
-            background-color: #4caf50;
+            background-color: #4CAF50; /* Calculate Study Time 버튼 색과 동일 */
             color: white;
             padding: 10px 15px;
             border: none;
@@ -95,8 +95,8 @@
     </div>
     {% endif %}
 
-    <!-- 'Add New Timetable' 버튼 추가 -->
-    <button class="add-timetable-btn" onclick="openModal()">Add New Timetable</button>
+    <!-- 'Add New Timetable' 버튼 문구 변경 -->
+    <button class="add-timetable-btn add-new-timetable-btn" onclick="openModal()">Load Timetable</button>
 
     <h1>Study Planner</h1>
     <form action="/plan" method="post">
@@ -133,7 +133,8 @@
 <div class="overlay" id="overlay"></div>
 <div class="modal" id="modal">
     <button class="close-btn" onclick="closeModal()">×</button>
-    <h2>Add a New Timetable</h2>
+    <!-- Modal 창 내의 제목 변경 -->
+    <h2>Load Timetable</h2>
     <form>
         <div>
             <label for="new_url">URL:</label>
