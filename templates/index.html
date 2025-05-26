@@ -14,15 +14,14 @@
     </div>
     {% endif %}
 
-    <!-- 'Add New Timetable' 버튼 문구 변경 -->
-    <button class="add-timetable-btn add-new-timetable-btn" onclick="openModal()">Load Timetable</button>
-
     <h1>Study Planner</h1>
     <form action="/plan" method="post">
         <div>
             <label for="total_hours">Total Study Time (hours):</label>
             <input type="number" id="total_hours" name="total_hours" step="0.1" required>
         </div>
+        <!-- 'Add New Timetable' 버튼 위치 이동 -->
+        <button class="add-timetable-btn add-new-timetable-btn" onclick="openModal()">Load Timetable</button>
         <hr>
         <div id="subjects">
             <div class="subject-item">
