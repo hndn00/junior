@@ -17,6 +17,87 @@ body {
     min-height: 100vh;
 }
 
+/* 흐려지는 배경 CSS */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    display: none; /* 초기 상태에서 숨겨짐 */
+}
+
+/* 작은 창 스타일 */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40%;
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 11;
+    display: none; /* 초기 상태에서 숨겨짐 */
+}
+
+/* 닫기 버튼 스타일 */
+.close-btn {
+    float: right;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* 'Add New Timetable' 버튼 스타일 */
+.add-timetable-btn {
+    background-color: #4CAF50; /* Calculate Study Time 버튼 색과 동일 */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.add-timetable-btn:hover {
+    background-color: #45a049;
+}
+
+/* 토글 버튼 복원 */
+.toggle-btn {
+    appearance: none;
+    width: 50px; /* 토글 버튼 크기 */
+    height: 25px;
+    border-radius: 12.5px;
+    background-color: #ccc;
+    position: relative;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.toggle-btn:checked {
+    background-color: #87ceeb; /* 활성화된 상태 색상 */
+}
+.toggle-btn:before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: white;
+    top: 2.5px;
+    left: 2.5px;
+    transition: all 0.3s ease;
+}
+.toggle-btn:checked:before {
+    left: 27.5px;
+}
+
 /* 메인 컨테이너 */
 .container {
     background-color: #f9f9f9;
