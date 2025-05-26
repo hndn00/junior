@@ -1,7 +1,9 @@
-from flask import Flask, request, render_template, redirect, url_for, session
+from flask import Flask, request, render_template, redirect, url_for, session, jsonify
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ElementTree
 import requests
+import json
+import os
 
 # everytime.py와 convert.py가 같은 디렉토리에 있다고 가정합니다.
 from everytime import Everytime
@@ -9,6 +11,9 @@ from convert import Convert
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"  # 실제 사용 시 복잡한 키로 변경하세요
+
+# 과목 데이터 저장 파일 경로
+SUBJECT_DATA_FILE = 'subject_data.json'
 
 # 간단한 사용자 인증 정보
 USER_CREDENTIALS = {
@@ -227,6 +232,69 @@ def process_timetable():
         print("Responding with error:", error_response) # 콘솔 로그 추가
         return error_response, 500
 
+
+# 과목 데이터 저장 엔드포인트
+@app.route("/save_subject_data", methods=["POST"])
+def save_subject_data():
+    try:
+        data = request.get_json()
+        
+        # 로그인한 사용자 확인
+        username = session.get('username')
+        if not username:
+            return jsonify({"error": "로그인이 필요합니다."}), 401
+        
+        # 데이터 검증 - 이제 데이터는 {subjects: [...], totalHours: "..."}와 같은 형태
+        if not isinstance(data, dict) or not isinstance(data.get('subjects', []), list):
+            return jsonify({"error": "잘못된 데이터 형식입니다."}), 400
+        
+        # 기존 데이터 파일 읽기
+        all_data = {}
+        if os.path.exists(SUBJECT_DATA_FILE):
+            try:
+                with open(SUBJECT_DATA_FILE, 'r', encoding='utf-8') as f:
+                    all_data = json.load(f)
+            except json.JSONDecodeError:
+                all_data = {}
+        
+        # 현재 사용자의 데이터 업데이트
+        all_data[username] = data
+        
+        # 파일에 저장
+        with open(SUBJECT_DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(all_data, f, ensure_ascii=False, indent=2)
+        
+        return jsonify({"success": True, "message": "과목 데이터가 성공적으로 저장되었습니다."})
+    
+    except Exception as e:
+        app.logger.error(f"과목 데이터 저장 중 오류 발생: {str(e)}", exc_info=True)
+        return jsonify({"error": f"데이터 저장 중 오류가 발생했습니다: {str(e)}"}), 500
+
+# 과목 데이터 불러오기 엔드포인트
+@app.route("/load_subject_data", methods=["GET"])
+def load_subject_data():
+    try:
+        # 로그인한 사용자 확인
+        username = session.get('username')
+        if not username:
+            return jsonify({"error": "로그인이 필요합니다."}), 401
+        
+        # 데이터 파일이 없는 경우 빈 배열 반환
+        if not os.path.exists(SUBJECT_DATA_FILE):
+            return jsonify({"data": []})
+        
+        # 데이터 파일 읽기
+        try:
+            with open(SUBJECT_DATA_FILE, 'r', encoding='utf-8') as f:
+                all_data = json.load(f)
+                user_data = all_data.get(username, [])
+                return jsonify({"data": user_data})
+        except json.JSONDecodeError:
+            return jsonify({"error": "데이터 파일이 손상되었습니다."}), 500
+    
+    except Exception as e:
+        app.logger.error(f"과목 데이터 불러오기 중 오류 발생: {str(e)}", exc_info=True)
+        return jsonify({"error": f"데이터 불러오기 중 오류가 발생했습니다: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

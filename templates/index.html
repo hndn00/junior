@@ -65,6 +65,16 @@
 </div>
 
 <script>
+    // 과목 데이터 자동 저장을 위한 input 이벤트 리스너
+    let saveTimeout;
+    document.addEventListener('input', function(e) {
+        if (e.target.closest('.subject-item') || e.target.id === 'total_hours') {
+            // 디바운싱: 연속된 입력에서 마지막 입력 후 500ms 후에만 저장
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveSubjectData, 500);
+        }
+    });
+    
     // 모달 창 열기
     function openModal() {
         document.getElementById('overlay').style.display = 'block';
@@ -81,9 +91,137 @@
     let subjectCount = 0; // 고유 ID 생성을 위한 카운터 (실제 과목 수와는 다를 수 있음)
 
     document.addEventListener('DOMContentLoaded', function() {
+            // 저장된 과목 데이터 불러오기
+            loadSubjectData();
+    });
+
+
+    function updateSliderValue(spanId, value) {
+        const spanElement = document.getElementById(spanId);
+        if (spanElement) {
+            spanElement.innerText = value;
+        }
+    }
+
+    // 과목 데이터를 서버에 저장하는 함수
+    function saveSubjectData() {
+        const subjectsData = [];
+        const subjects = document.querySelectorAll('.subject-item');
+        const totalHoursInput = document.getElementById('total_hours');
+        
+        subjects.forEach(subject => {
+            const nameInput = subject.querySelector('input[name="name"]');
+            const majorInput = subject.querySelector('input[name="major"]');
+            const weightInput = subject.querySelector('input[name="weight"]');
+            
+            if (nameInput && majorInput && weightInput) {
+                subjectsData.push({
+                    name: nameInput.value,
+                    major: majorInput.checked,
+                    weight: weightInput.value
+                });
+            }
+        });
+        
+        // 과목 데이터와 총 학습 시간을 함께 저장
+        const data = {
+            subjects: subjectsData,
+            totalHours: totalHoursInput ? totalHoursInput.value : ""
+        };
+        
+        // 서버에 데이터 저장 요청
+        fetch('/save_subject_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('과목 데이터 저장 오류:', data.error);
+            } else if (data.success) {
+                console.log('과목 데이터 저장 성공:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('과목 데이터 저장 중 오류 발생:', error);
+        });
+    }
+    
+    // 서버에서 과목 데이터를 불러오는 함수
+    function loadSubjectData() {
+        fetch('/load_subject_data')
+        .then(response => response.json())
+        .then(response => {
+            if (response.error) {
+                console.error('과목 데이터 불러오기 오류:', response.error);
+                initializeDefaultSubject(); // 오류 시 기본 과목 초기화
+                return;
+            }
+            
+            const data = response.data;
+            const totalHoursInput = document.getElementById('total_hours');
+            
+            // 총 학습 시간 설정
+            if (data && data.totalHours && totalHoursInput) {
+                totalHoursInput.value = data.totalHours;
+            }
+            
+            // 과목 데이터 설정
+            const subjectsData = data && data.subjects ? data.subjects : [];
+            
+            // 기존 과목 입력 필드 모두 제거
+            document.getElementById('subjects').innerHTML = '';
+            
+            if (subjectsData && subjectsData.length > 0) {
+                // 저장된 데이터로 과목 입력 필드 생성
+                subjectsData.forEach(subject => {
+                    subjectCount++;
+                    const subjectItemId = `subjectItem${subjectCount}`;
+                    const nameId = `name${subjectCount}`;
+                    const majorId = `major${subjectCount}`;
+                    const weightId = `weight${subjectCount}`;
+                    const sliderValueId = `sliderValue${subjectCount}`;
+    
+                    const div = document.createElement('div');
+                    div.classList.add('subject-item');
+                    div.id = subjectItemId;
+    
+                    div.innerHTML = `
+                        <div class="subject-inputs">
+                            <label for="${nameId}">Subject:</label>
+                            <input type="text" id="${nameId}" name="name" value="${subject.name}" required>
+    
+                            <label for="${majorId}">Major Course:</label>
+                            <input type="checkbox" id="${majorId}" name="major" class="toggle-btn" ${subject.major ? 'checked' : ''}>
+    
+                            <label for="${weightId}">Importance Level:</label>
+                            <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="${subject.weight}"
+                                   oninput="updateSliderValue('${sliderValueId}', this.value)">
+                            <span id="${sliderValueId}">${subject.weight}</span>
+                        </div>
+                        <button type="button" class="remove-subject-btn" onclick="removeSubject('${subjectItemId}')">Remove</button>
+                    `;
+                    document.getElementById('subjects').appendChild(div);
+                });
+            } else {
+                // 저장된 데이터가 없으면 기본 과목 초기화
+                initializeDefaultSubject();
+            }
+        })
+        .catch(error => {
+            console.error('과목 데이터 불러오기 중 오류 발생:', error);
+            initializeDefaultSubject(); // 오류 시 기본 과목 초기화
+        });
+    }
+    
+    // 기본 과목 초기화 함수
+    function initializeDefaultSubject() {
         const initialSubjects = document.querySelectorAll('#subjects .subject-item');
         if (initialSubjects.length > 0) {
-            // 가장 큰 ID 번호를 찾아 subjectCount 설정 (더 견고한 방법)
+            // 가장 큰 ID 번호를 찾아 subjectCount 설정
             let maxIdNum = 0;
             initialSubjects.forEach(item => {
                 const idNum = parseInt(item.id.replace('subjectItem', ''));
@@ -95,16 +233,8 @@
         } else {
             addSubject(); // 초기에 아무 과목도 없으면 하나 추가
         }
-    });
-
-
-    function updateSliderValue(spanId, value) {
-        const spanElement = document.getElementById(spanId);
-        if (spanElement) {
-            spanElement.innerText = value;
-        }
     }
-
+    
     function addSubject(subjectName = '') { // 과목명을 인자로 받을 수 있도록 수정
         subjectCount++;
         const subjectItemId = `subjectItem${subjectCount}`;
@@ -112,19 +242,19 @@
         const majorId = `major${subjectCount}`;
         const weightId = `weight${subjectCount}`;
         const sliderValueId = `sliderValue${subjectCount}`;
-
+    
         const div = document.createElement('div');
         div.classList.add('subject-item');
         div.id = subjectItemId; // 각 subject-item div에 고유 ID 부여
-
+    
         div.innerHTML = `
             <div class="subject-inputs">
                 <label for="${nameId}">Subject:</label>
                 <input type="text" id="${nameId}" name="name" value="${subjectName}" required>
-
+    
                 <label for="${majorId}">Major Course:</label>
                 <input type="checkbox" id="${majorId}" name="major" class="toggle-btn">
-
+    
                 <label for="${weightId}">Importance Level:</label>
                 <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="50"
                        oninput="updateSliderValue('${sliderValueId}', this.value)">
@@ -133,8 +263,11 @@
             <button type="button" class="remove-subject-btn" onclick="removeSubject('${subjectItemId}')">Remove</button>
         `;
         document.getElementById('subjects').appendChild(div);
+        
+        // 과목 추가 후 데이터 저장
+        saveSubjectData();
     }
-
+    
     // 과목 입력 필드 제거 함수
     function removeSubject(subjectItemId) {
         const subjectItemToRemove = document.getElementById(subjectItemId);
@@ -143,6 +276,8 @@
             const subjectsDiv = document.getElementById('subjects');
             if (subjectsDiv.getElementsByClassName('subject-item').length > 1) {
                 subjectItemToRemove.remove();
+                // 과목 제거 후 데이터 저장
+                saveSubjectData();
             } else {
                 alert('At least one subject must remain.');
             }
@@ -212,9 +347,39 @@
             return;
         }
 
-        uniqueSubjects.forEach(subjectName => {
-            addSubject(subjectName); // 수정된 addSubject 함수 호출
+        // 과목을 한 번에 추가 (saveSubjectData는 마지막에 한 번만 호출)
+        uniqueSubjects.forEach((subjectName, index) => {
+            subjectCount++;
+            const subjectItemId = `subjectItem${subjectCount}`;
+            const nameId = `name${subjectCount}`;
+            const majorId = `major${subjectCount}`;
+            const weightId = `weight${subjectCount}`;
+            const sliderValueId = `sliderValue${subjectCount}`;
+    
+            const div = document.createElement('div');
+            div.classList.add('subject-item');
+            div.id = subjectItemId;
+    
+            div.innerHTML = `
+                <div class="subject-inputs">
+                    <label for="${nameId}">Subject:</label>
+                    <input type="text" id="${nameId}" name="name" value="${subjectName}" required>
+    
+                    <label for="${majorId}">Major Course:</label>
+                    <input type="checkbox" id="${majorId}" name="major" class="toggle-btn">
+    
+                    <label for="${weightId}">Importance Level:</label>
+                    <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="50"
+                           oninput="updateSliderValue('${sliderValueId}', this.value)">
+                    <span id="${sliderValueId}">50</span>
+                </div>
+                <button type="button" class="remove-subject-btn" onclick="removeSubject('${subjectItemId}')">Remove</button>
+            `;
+            document.getElementById('subjects').appendChild(div);
         });
+        
+        // 모든 과목을 추가한 후 한 번만 저장
+        saveSubjectData();
     }
 </script>
 </body>
