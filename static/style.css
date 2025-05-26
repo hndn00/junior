@@ -1,4 +1,4 @@
-/* 전체 레이아웃 정리 */
+/* static/style.css 파일에 추가/수정 */
 @font-face {
     font-family: 'NoonnuBasicGothicRegular';
     src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noon-2410@1.0/NoonnuBasicGothicRegular.woff2') format('woff2');
@@ -15,9 +15,10 @@ body {
     justify-content: center;
     align-items: flex-start;
     min-height: 100vh;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
-/* 흐려지는 배경 CSS */
 .overlay {
     position: fixed;
     top: 0;
@@ -26,54 +27,70 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     z-index: 10;
-    display: none; /* 초기 상태에서 숨겨짐 */
+    display: none;
 }
 
-/* 작은 창 스타일 */
 .modal {
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40%;
+    width: 90%;
+    max-width: 450px;
     background: white;
     border-radius: 10px;
-    padding: 20px;
+    padding: 25px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     z-index: 11;
-    display: none; /* 초기 상태에서 숨겨짐 */
+    display: none;
 }
 
-/* 닫기 버튼 스타일 */
+.modal h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    text-align: center;
+}
+
 .close-btn {
-    float: right;
+    position: absolute;
+    top: 10px;
+    right: 10px;
     background: transparent;
     border: none;
-    font-size: 18px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #888;
     cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+}
+.close-btn:hover {
+    color: #333;
 }
 
-/* 'Add New Timetable' 버튼 스타일 */
 .add-timetable-btn {
-    background-color: #4CAF50; /* Calculate Study Time 버튼 색과 동일 */
-    color: white;
+    background-color: #b2cae5;
+    color: #121416;
     padding: 10px 15px;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     margin-bottom: 20px;
-    width: 100%; /* 버튼 너비를 100%로 설정 */
-    box-sizing: border-box; /* padding과 border가 너비에 포함되도록 설정 */
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'NoonnuBasicGothicRegular';
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
 }
-
 .add-timetable-btn:hover {
-    background-color: #45a049;
+    background-color: #a0bfe0;
 }
 
-/* 토글 버튼 복원 */
 .toggle-btn {
     appearance: none;
-    width: 50px; /* 토글 버튼 크기 */
+    width: 50px;
     height: 25px;
     border-radius: 12.5px;
     background-color: #ccc;
@@ -81,9 +98,10 @@ body {
     outline: none;
     cursor: pointer;
     transition: all 0.3s ease;
+    vertical-align: middle;
 }
 .toggle-btn:checked {
-    background-color: #87ceeb; /* 활성화된 상태 색상 */
+    background-color: #87ceeb;
 }
 .toggle-btn:before {
     content: '';
@@ -100,11 +118,9 @@ body {
     left: 27.5px;
 }
 
-/* 메인 컨테이너 */
 .container {
     background-color: #f9f9f9;
     padding: 32px;
-    margin-top: 40px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     width: 100%;
@@ -113,7 +129,6 @@ body {
     position: relative;
 }
 
-/* 오른쪽 상단 메뉴 */
 .top-right-menu {
     position: absolute;
     top: 15px;
@@ -121,7 +136,6 @@ body {
     z-index: 10;
 }
 
-/* 로그아웃 버튼 */
 .logout-btn {
     background-color: #f0f0f0;
     color: #555;
@@ -133,25 +147,22 @@ body {
     border: 1px solid #ddd;
     display: inline-block;
 }
-
 .logout-btn:hover {
     background-color: #e0e0e0;
 }
 
-/* 제목 */
 .container h1 {
     text-align: center;
     color: #121416;
     font-size: 24px;
+    margin-top: 0;
     margin-bottom: 24px;
 }
 
-/* 각 입력 그룹 */
 .container form > div {
     margin-bottom: 20px;
 }
 
-/* 라벨 */
 label {
     display: block;
     margin-bottom: 6px;
@@ -159,7 +170,6 @@ label {
     color: #333;
 }
 
-/* 입력창 공통 */
 input[type="text"],
 input[type="number"] {
     width: 100%;
@@ -170,42 +180,53 @@ input[type="number"] {
     box-sizing: border-box;
     margin-bottom: 10px;
 }
+input[type="number"] {
+    margin-bottom: 0;
+}
 
-/* 슬라이더 */
 input[type="range"] {
-    -webkit-appearance: none; /* 기본 슬라이더 스타일 제거 */
+    -webkit-appearance: none;
     appearance: none;
-    width: 100%; /* 슬라이더 폭 */
-    height: 6px; /* 슬라이더 높이 */
-    border-radius: 5px; /* 둥글게 처리 */
-    background: linear-gradient(to right, #4caf50, #87ceeb); /* 색상 그라디언트 */
+    width: calc(100% - 40px);
+    height: 8px;
+    border-radius: 5px;
+    background: #e0e0e0;
     outline: none;
-    opacity: 0.9; /* 불투명도를 낮춰서 부드러운 느낌 */
+    opacity: 0.9;
     transition: opacity 0.2s;
     cursor: pointer;
+    vertical-align: middle;
+    margin-right: 8px;
 }
-
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #87ceeb, #4caf50);
+}
+input[type="range"]::-moz-range-track {
+    height: 8px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #87ceeb, #4caf50);
+}
 input[type="range"]:hover {
-    opacity: 1; /* 마우스 올렸을 때 불투명도 상승 */
+    opacity: 1;
 }
-
 input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none; /* 기본 스타일 제거 */
+    -webkit-appearance: none;
     appearance: none;
-    width: 20px; /* 슬라이더 핸들 크기 */
+    width: 20px;
     height: 20px;
-    border-radius: 50%; /* 둥근 핸들 */
-    background: #ffffff; /* 핸들 색상 */
-    border: 2px solid #4caf50; /* 핸들 테두리 */
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #4caf50;
     cursor: pointer;
     transition: background 0.2s, transform 0.2s;
+    margin-top: -6px;
 }
-
 input[type="range"]::-webkit-slider-thumb:hover {
-    background: #87ceeb; /* 핸들 호버 색상 */
-    transform: scale(1.2); /* 크기 확대 효과 */
+    background: #f0f0f0;
+    transform: scale(1.1);
 }
-
 input[type="range"]::-moz-range-thumb {
     width: 20px;
     height: 20px;
@@ -216,76 +237,59 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer;
     transition: background 0.2s, transform 0.2s;
 }
-
 input[type="range"]::-moz-range-thumb:hover {
-    background: #87ceeb;
-    transform: scale(1.2);
+    background: #f0f0f0;
+    transform: scale(1.1);
 }
 
-input[type="range"]::-ms-thumb {
-    width: 20px;
-    height: 20px;
-    border: none;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 2px solid #4caf50;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
-}
-
-input[type="range"]::-ms-thumb:hover {
-    background: #87ceeb;
-    transform: scale(1.2);
-}
-
-/* 슬라이더 값 표시 */
-.subject-item span {
+.subject-item .subject-inputs span {
     font-weight: 500;
     color: #121416;
-    margin-left: 8px;
+    display: inline-block;
+    width: 30px;
+    text-align: right;
+    vertical-align: middle;
 }
 
-/* 과목 입력 블록 */
 .subject-item {
     padding: 16px;
+    padding-bottom: 40px;
     border-radius: 10px;
     background-color: #f0f4f8;
     margin-bottom: 16px;
     border: 1px solid #e0e0e0;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+.subject-item:hover {
+    background-color: #e9eef3;
 }
 
-/* 구분선 */
+.subject-item .subject-inputs {
+    /* subject-inputs는 버튼과 겹치지 않도록 기본 배치 */
+}
+.subject-item label {
+    margin-top: 8px;
+}
+.subject-item label:first-child {
+    margin-top: 0;
+}
+
 hr {
     border: none;
     border-top: 1px solid #ddd;
-    margin: 20px 0;
+    margin: 25px 0;
 }
 
-/* 버튼 공통 스타일 */
 button {
     font-family: 'NoonnuBasicGothicRegular';
-    font-size: 16px;
+    /* font-size: 16px; 기본 버튼 크기는 plus-style-button에서 설정 */
     font-weight: bold;
     border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
-/* Add Subject 버튼 - 작고 가벼운 느낌 */
-button[type="button"] {
-    background-color: #eeeeee;
-    color: #333;
-    border: none;
-    padding: 8px 14px;
-    margin-top: 8px;
-    display: inline-block;
-}
-
-button[type="button"]:hover {
-    background-color: #dddddd;
-}
-
-/* Calculate Study Time 버튼 - 강조 & 넓게 */
 button[type="submit"] {
     background-color: #b2cae5;
     color: #121416;
@@ -293,40 +297,99 @@ button[type="submit"] {
     padding: 12px;
     width: 100%;
     margin-top: 16px;
+    font-size: 16px;
 }
-
 button[type="submit"]:hover {
     background-color: #a0bfe0;
 }
 
-/* Add New Timetable 버튼의 스타일 수정 (크기 원래대로) */
-/* 이전에 있던 .add-timetable-btn 스타일은 위에서 수정되었으므로,
-   만약 이 스타일 블록이 다른 add-timetable-btn (예: add-new-timetable-btn 클래스가 없는)을
-   위한 것이었다면 유지해야 합니다. 하지만 현재 HTML 구조상 add-timetable-btn 클래스를
-   가진 버튼은 하나뿐이고, add-new-timetable-btn 클래스도 함께 가지고 있습니다.
-   따라서 아래 스타일 블록은 중복되거나 이전 스타일을 덮어쓰려는 의도였을 수 있습니다.
-   요청하신 대로 너비를 100%로 설정하기 위해 위쪽 .add-timetable-btn 규칙에 width: 100%를 추가했습니다.
-   이 블록은 현재 상태에서는 특별한 역할을 하지 않거나, 이전 스타일 정의를 무효화 시킬 수 있으므로
-   정확한 의도에 따라 주석 처리하거나 수정/삭제하는 것을 고려해야 합니다.
-   일단은 요청에 따라 너비 100%를 적용했으므로, 이 블록은 그대로 두겠습니다.
-   만약 이 버튼의 색상이나 다른 속성을 원래대로 유지하고 싶으시다면, 이 부분을 수정해야 합니다.
-*/
-button.add-timetable-btn.add-new-timetable-btn { /* 보다 구체적인 선택자로 지정 */
-    background-color: #b2cae5; /* Calculate Study Time 버튼과 동일한 배경색 */
-    color: #121416; /* 동일한 폰트 색상 */
+.modal button[type="button"] {
+    background-color: #b2cae5;
+    color: #121416;
     border: none;
     padding: 10px 15px;
-    margin-bottom: 20px;
-    font-family: 'NoonnuBasicGothicRegular';
+    width: 100%;
     font-size: 16px;
     font-weight: bold;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    width: 100%; /* 너비 100% 추가 */
-    box-sizing: border-box; /* padding과 border가 너비에 포함되도록 설정 */
+}
+.modal button[type="button"]:hover {
+    background-color: #a0bfe0;
 }
 
-button.add-timetable-btn.add-new-timetable-btn:hover {
-    background-color: #a0bfe0; /* 동일한 hover 효과 색상 */
+/* 과목 아이템 내 액션 버튼 컨테이너 */
+.subject-actions-container {
+    position: absolute;
+    bottom: 8px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+    pointer-events: none;
+}
+
+.subject-item:hover .subject-actions-container {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.action-left, .action-right {
+    display: inline-block;
+}
+
+/* 가독성을 높인 액션 버튼 스타일 (크기 축소) */
+.plus-style-button.action-btn {
+    background-color: #ffffff;
+    color: #4A5568;
+    border: 1px solid #CBD5E0;
+    padding: 5px 10px; /* 패딩을 줄여 버튼 크기 축소 */
+    border-radius: 5px; /* 모서리 둥글기 약간 줄임 */
+    font-size: 12px; /* 글자 크기 약간 줄임 */
+    font-weight: 500;
+    margin: 0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.15s ease-in-out;
+    line-height: 1.2;
+}
+
+.plus-style-button.action-btn:hover {
+    background-color: #F7FAFC;
+    border-color: #A0AEC0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+.plus-style-button.action-btn:active {
+    background-color: #EDF2F7;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+    transform: translateY(0px);
+}
+
+
+.plus-style-button.action-btn.remove-btn {
+    /* 기본 스타일은 공통으로 두고, 필요시 추가 */
+}
+.plus-style-button.action-btn.remove-btn:hover {
+    color: #E53E3E;
+    border-color: #E53E3E;
+}
+
+.plus-style-button.action-btn.add-below-btn {
+    /* 기본 스타일은 공통으로 두고, 필요시 추가 */
+}
+.plus-style-button.action-btn.add-below-btn:hover {
+    color: #38A169;
+    border-color: #38A169;
+}
+
+/* 버튼 텍스트에 + 기호 대신 아이콘 폰트나 SVG를 사용하면 더 깔끔해집니다. */
+/* 예시: 텍스트만 있는 경우 (JS에서 + 제거 필요) */
+.plus-style-button.action-btn .icon {
+    margin-right: 5px; /* 아이콘과 텍스트 사이 간격 */
 }
