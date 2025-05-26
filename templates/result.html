@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Study Time Allocation Result</title>
-    <link rel="stylesheet" href="/static/result_style.css">
+    <link rel="stylesheet" href="static/css/result_style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
@@ -13,7 +13,7 @@
         <a href="/logout" class="logout-btn">Log Out</a>
     </div>
     {% endif %}
-    
+
     <h2>Study Time Allocation Result</h2>
     <div class="chart-container">
         <canvas id="timeDistributionChart"></canvas>
@@ -35,13 +35,13 @@
             "{{ name }}",
         {% endfor %}
     ];
-    
+
     const chartData = [
         {% for name, hours, minutes in results %}
             {{ hours + (minutes / 60) }},  // 차트 데이터용으로 다시 소수점 형식으로 변환
         {% endfor %}
     ];
-    
+
     // 색상 배열 생성 함수
     function generateColors(count) {
         const predefinedColors = [
@@ -56,23 +56,23 @@
             'rgba(78, 205, 196, 0.7)',   // 민트
             'rgba(255, 99, 255, 0.7)'    // 분홍
         ];
-        
+
         const backgroundColors = [];
         const borderColors = [];
-        
+
         for (let i = 0; i < count; i++) {
             const color = predefinedColors[i % predefinedColors.length];
             backgroundColors.push(color);
             borderColors.push(color.replace('0.7', '1'));
         }
-        
+
         return { backgroundColors, borderColors };
     }
-    
+
     // 차트 초기화 함수
     function initializeChart() {
         const canvas = document.getElementById('timeDistributionChart');
-        
+
         if (!chartLabels.length || !chartData.length) {
             canvas.style.display = 'none';
             const noDataMsg = document.createElement('p');
@@ -82,12 +82,12 @@
             canvas.parentNode.appendChild(noDataMsg);
             return;
         }
-        
+
         const colors = generateColors(chartLabels.length);
-        
+
         // Chart.js 컨텍스트 설정
         const ctx = canvas.getContext('2d');
-        
+
         // 차트 객체 생성 및 설정
         const chart = new Chart(ctx, {
             type: 'pie',
@@ -127,7 +127,7 @@
             }
         });
     }
-    
+
     // 페이지 로드 완료 후 차트 초기화
     window.addEventListener('load', function() {
         initializeChart();
