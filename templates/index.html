@@ -4,46 +4,100 @@
     <meta charset="UTF-8">
     <title>Study Planner</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* 흐려지는 배경 CSS */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            display: none; /* 초기 상태에서 숨겨짐 */
+        }
+
+        /* 작은 창 스타일 */
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40%;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            z-index: 11;
+            display: none; /* 초기 상태에서 숨겨짐 */
+        }
+
+        /* 닫기 버튼 스타일 */
+        .close-btn {
+            float: right;
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* 'Add New Timetable' 버튼 스타일 */
+        .add-timetable-btn {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .add-timetable-btn:hover {
+            background-color: #45a049;
+        }
+
+        /* 토글 버튼 복원 */
+        .toggle-btn {
+            appearance: none;
+            width: 50px; /* 토글 버튼 크기 */
+            height: 25px;
+            border-radius: 12.5px;
+            background-color: #ccc;
+            position: relative;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .toggle-btn:checked {
+            background-color: #87ceeb; /* 활성화된 상태 색상 */
+        }
+        .toggle-btn:before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2.5px;
+            left: 2.5px;
+            transition: all 0.3s ease;
+        }
+        .toggle-btn:checked:before {
+            left: 27.5px;
+        }
+    </style>
 </head>
 <body>
-<style>
-    .toggle-btn {
-        appearance: none;
-        width: 50px; /* 버튼 크기 조정 */
-        height: 25px; /* 버튼 크기 조정 */
-        border-radius: 12.5px;
-        background-color: #ccc;
-        position: relative;
-        outline: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-    .toggle-btn:checked {
-        background-color: #87ceeb; /* 하늘색과 어울리는 색상 (Light Blue) */
-    }
-    .toggle-btn:before {
-        content: '';
-        position: absolute;
-        width: 20px; /* 버튼 크기에 맞춰 고정 */
-        height: 20px; /* 버튼 크기에 맞춰 고정 */
-        border-radius: 50%;
-        background-color: white;
-        top: 2.5px; /* 위 여백 간격 */
-        left: 2.5px;
-        transition: all 0.3s ease;
-    }
-    .toggle-btn:checked:before {
-        left: 27.5px; /* checked 상태에서 이동 */
-    }
-</style>
-
 <div class="container">
     {% if session.username %}
     <div class="top-right-menu">
         <a href="/logout" class="logout-btn">Log Out</a>
     </div>
     {% endif %}
-    
+
+    <!-- 'Add New Timetable' 버튼 추가 -->
+    <button class="add-timetable-btn" onclick="openModal()">Add New Timetable</button>
+
     <h1>Study Planner</h1>
     <form action="/plan" method="post">
         <div>
@@ -51,24 +105,23 @@
             <input type="number" id="total_hours" name="total_hours" step="0.1" required>
         </div>
         <hr>
-        
-<div id="subjects">
-    <div class="subject-item">
-        <label for="name1">Subject:</label>
-        <input type="text" id="name1" name="name" required>
+        <div id="subjects">
+            <div class="subject-item">
+                <label for="name1">Subject:</label>
+                <input type="text" id="name1" name="name" required>
 
-        <label for="major1">Major Course:</label>
-        <input type="checkbox" id="major1" name="major" class="toggle-btn">
+                <label for="major1">Major Course:</label>
+                <input type="checkbox" id="major1" name="major" class="toggle-btn">
 
-        <label for="weight1">Importance Level:</label>
-        <input type="range" id="weight1" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue1', this.value)">
-        <span id="sliderValue1">0.5</span>
-    </div>
-</div>
+                <label for="weight1">Importance Level:</label>
+                <input type="range" id="weight1" name="weight" min="0" max="1" step="0.1" value="0.5" oninput="updateSliderValue('sliderValue1', this.value)">
+                <span id="sliderValue1">0.5</span>
+            </div>
+        </div>
         <button type="button" onclick="addSubject()">Add Subject</button><br><br>
         <button type="submit">Calculate Study Time</button>
     </form>
-    
+
     {% if not session.username %}
     <div style="text-align: center; margin-top: 20px;">
         <a href="/" style="color: #555; text-decoration: underline; font-size: 14px;">Back to Main</a>
@@ -76,7 +129,34 @@
     {% endif %}
 </div>
 
+<!-- Modal Elements -->
+<div class="overlay" id="overlay"></div>
+<div class="modal" id="modal">
+    <button class="close-btn" onclick="closeModal()">×</button>
+    <h2>Add a New Timetable</h2>
+    <form>
+        <div>
+            <label for="new_url">URL:</label>
+            <input type="text" id="new_url" name="new_url" placeholder="Enter Everytime URL..." required>
+        </div>
+        <br>
+        <button type="submit">Save Timetable</button>
+    </form>
+</div>
+
 <script>
+    // 모달 창 열기
+    function openModal() {
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('modal').style.display = 'block';
+    }
+
+    // 모달 창 닫기
+    function closeModal() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('modal').style.display = 'none';
+    }
+
     let subjectCount = 1;
 
     // 슬라이더 값 업데이트 함수
@@ -103,6 +183,5 @@
         document.getElementById('subjects').appendChild(div);
     }
 </script>
-
 </body>
 </html>
