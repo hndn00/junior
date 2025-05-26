@@ -263,7 +263,7 @@ hr {
 
 /* 버튼 공통 스타일 */
 button {
-    font-family: inherit;
+    font-family: 'NoonnuBasicGothicRegular';
     font-size: 16px;
     font-weight: bold;
     border-radius: 8px;
@@ -317,7 +317,7 @@ button.add-timetable-btn.add-new-timetable-btn { /* 보다 구체적인 선택�
     border: none;
     padding: 10px 15px;
     margin-bottom: 20px;
-    font-family: inherit;
+    font-family: 'NoonnuBasicGothicRegular';
     font-size: 16px;
     font-weight: bold;
     border-radius: 5px;
