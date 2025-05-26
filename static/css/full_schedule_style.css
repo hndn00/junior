@@ -1,0 +1,104 @@
+/* static/css/full_schedule_style.css */
+body {
+    font-family: 'NoonnuBasicGothicRegular', 'Malgun Gothic', sans-serif; /* 기본 폰트 설정 */
+}
+
+.timetable {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed; /* 셀 너비 고정 */
+    margin: 0 auto;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.timetable th, .timetable td {
+    border: 1px solid #ddd; /* 테두리 색 연하게 */
+    padding: 5px; /* 패딩 축소 */
+    text-align: center;
+    vertical-align: top; /* rowspan 아이템 상단 정렬 */
+    font-size: 11px; /* 폰트 크기 약간 줄임 */
+    height: 25px; /* 30분 간격에 대한 기본 높이 */
+    overflow: hidden; /* 내용 넘칠 경우 숨김 */
+    word-break: break-word; /* 긴 단어 줄바꿈 */
+}
+
+.timetable th {
+    background-color: #f8f9fa; /* 헤더 배경색 */
+    font-weight: bold;
+    color: #333;
+}
+
+.timetable .time-header { /* 시간 헤더 셀 너비 */
+    width: 60px;
+}
+.timetable .time-cell { /* 시간 표시 셀 스타일 */
+    font-weight: bold;
+    background-color: #f8f9fa;
+    font-size: 10px;
+}
+
+
+.schedule-item {
+    color: #333; /* 기본 텍스트 색상 */
+    line-height: 1.2;
+    padding: 4px;
+    border-radius: 3px; /* 약간의 모서리 둥글기 */
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.05); /* 은은한 내부 그림자 */
+}
+
+.schedule-item strong {
+    font-size: 12px; /* 과목명 폰트 크기 */
+    font-weight: bold;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.schedule-item .details {
+    margin-top: 2px;
+}
+
+.schedule-item .details small {
+    font-size: 9px; /* 교수명/강의실 폰트 크기 */
+    color: #555;
+    display: block;
+    line-height: 1.1;
+}
+
+/* 타입별 기본 스타일 (색상은 인라인 스타일로 덮어쓰기 가능) */
+.item-class {
+    /* background-color: #e3f2fd; */ /* 예시: 연한 파랑 */
+    border-left: 3px solid #1565c0; /* 수업 타입 강조 */
+}
+
+.item-study {
+    /* background-color: #e8f5e9; */ /* 예시: 연한 초록 */
+    border-left: 3px solid #2e7d32; /* 학습 타입 강조 */
+}
+
+.back-button {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+.back-button:hover {
+    background-color: #0056b3;
+}
+.item-study {
+    /* background-color: transparent; /* app.py에서 이미 처리 */
+    border: 1px dashed #ccc; /* 점선 테두리로 구분 */
+    /* color: #555; /* 글자색 약간 연하게 */
+}
+
+.item-study strong {
+    /* font-weight: normal; */ /* 공강 자습 과목명은 보통 굵기로 */
+}
+
+.item-study .details small {
+    /* font-style: italic; */ /* "공강 자습" 텍스트는 이탤릭체로 */
+    color: #777;
+}

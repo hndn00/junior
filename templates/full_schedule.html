@@ -1,0 +1,84 @@
+{# templates/full_schedule.html #}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>종합 시간표</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/full_schedule_style.css') }}">
+    <link rel="stylesheet" type="text/css" href="https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2Basic@1.0/NoonnuBasicGothicRegular.css">
+    <style>
+        body {
+            font-family: 'NoonnuBasicGothicRegular', sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>종합 시간표</h1>
+    {% if message %}
+        <p style="text-align: center; color: red;">{{ message }}</p>
+    {% endif %}
+    {% if schedule_grid and time_intervals and days_of_week %}
+        <table class="timetable">
+            <thead>
+            <tr>
+                <th class="time-header">시간</th>
+                {% for day in days_of_week %}
+                    <th>{{ day }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for time_str in time_intervals %}
+                <tr>
+                    <td class="time-cell">{{ time_str }}</td>
+                    {% for day in days_of_week %}
+                        {% set cell_item = schedule_grid[time_str][day] %}
+                        {% if cell_item and cell_item != "covered" %}
+                            {# 'study' 타입일 경우 배경색을 transparent 또는 기본값으로, 'class'는 지정된 색상 사용 #}
+                            <td rowspan="{{ cell_item.rowspan if cell_item.rowspan else 1 }}"
+                                class="schedule-item item-{{ cell_item.type }}"
+                                style="background-color: {{ cell_item.color if cell_item.color != 'transparent' else '' }};">
+                                <strong>{{ cell_item.subject_name }}</strong>
+                                <div class="details">
+                                    {% if cell_item.type == 'class' %}
+                                        {% if cell_item.professor %}<small>{{ cell_item.professor }}</small>{% endif %}
+                                        {% if cell_item.place %}<small>{{ cell_item.place }}</small>{% endif %}
+                                    {% elif cell_item.type == 'study' %}
+                                        {% if cell_item.place %}<small>{{ cell_item.place }}</small>{% endif %} {# "공강 자습" 표시 #}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        {% elif cell_item == "covered" %}
+                            {# This cell is covered by a rowspan, do not render a td #}
+                        {% else %}
+                            <td></td> {# Empty slot #}
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% elif not message %}
+        <p style="text-align: center;">시간표 데이터가 없습니다. 먼저 시간표를 로드하고 학습 계획을 계산해주세요.</p>
+    {% endif %}
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{{ url_for('plan') }}" class="back-button">← 학습 계획 페이지로 돌아가기</a>
+    </div>
+</div>
+</body>
+</html>
