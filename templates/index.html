@@ -9,9 +9,9 @@
 <body>
 <div class="container">
     {% if session.username %}
-        <div class="top-right-menu">
-            <a href="/logout" class="logout-btn">Log Out</a>
-        </div>
+    <div class="top-right-menu">
+        <a href="/logout" class="logout-btn">Log Out</a>
+    </div>
     {% endif %}
 
     <h1>Study Planner</h1>
@@ -23,16 +23,20 @@
         <button type="button" class="add-timetable-btn add-new-timetable-btn" onclick="openModal()">Load Timetable</button>
         <hr>
         <div id="subjects">
-            <div class="subject-item">
-                <label for="name1">Subject:</label>
-                <input type="text" id="name1" name="name" required>
+            <div class="subject-item" id="subjectItem1">
+                <div class="subject-inputs">
+                    <label for="name1">Subject:</label>
+                    <input type="text" id="name1" name="name" required>
 
-                <label for="major1">Major Course:</label>
-                <input type="checkbox" id="major1" name="major" class="toggle-btn">
+                    <label for="major1">Major Course:</label>
+                    <input type="checkbox" id="major1" name="major" class="toggle-btn">
 
-                <label for="weight1">Importance Level:</label> <input type="range" id="weight1" name="weight" min="0" max="100" step="1" value="50"
-                                                                      oninput="updateSliderValue('sliderValue1', this.value)">
-                <span id="sliderValue1">50</span>
+                    <label for="weight1">Importance Level:</label>
+                    <input type="range" id="weight1" name="weight" min="0" max="100" step="1" value="50"
+                           oninput="updateSliderValue('sliderValue1', this.value)">
+                    <span id="sliderValue1">50</span>
+                </div>
+                <button type="button" class="remove-subject-btn" onclick="removeSubject('subjectItem1')">Remove</button>
             </div>
         </div>
         <button type="button" onclick="addSubject()">Add Subject</button><br><br>
@@ -40,9 +44,9 @@
     </form>
 
     {% if not session.username %}
-        <div style="text-align: center; margin-top: 20px;">
-            <a href="/" style="color: #555; text-decoration: underline; font-size: 14px;">Back to Main</a>
-        </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/" style="color: #555; text-decoration: underline; font-size: 14px;">Back to Main</a>
+    </div>
     {% endif %}
 </div>
 
@@ -71,22 +75,29 @@
     function closeModal() {
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('modal').style.display = 'none';
-        document.getElementById('new_url').value = ''; // 모달 닫을 때 URL 입력 필드 초기화
+        document.getElementById('new_url').value = '';
     }
 
-    let subjectCount = 1; // 현재 페이지의 과목 입력 필드 개수를 추적
+    let subjectCount = 0; // 고유 ID 생성을 위한 카운터 (실제 과목 수와는 다를 수 있음)
 
-    // 페이지 로드 시 #subjects 내 .subject-item 개수로 subjectCount 초기화
     document.addEventListener('DOMContentLoaded', function() {
         const initialSubjects = document.querySelectorAll('#subjects .subject-item');
-        subjectCount = initialSubjects.length > 0 ? initialSubjects.length : 0;
-        if (subjectCount === 0) { // 만약 초기에 아무 과목도 없다면 하나 추가 (선택적)
-            addSubject();
+        if (initialSubjects.length > 0) {
+            // 가장 큰 ID 번호를 찾아 subjectCount 설정 (더 견고한 방법)
+            let maxIdNum = 0;
+            initialSubjects.forEach(item => {
+                const idNum = parseInt(item.id.replace('subjectItem', ''));
+                if (idNum > maxIdNum) {
+                    maxIdNum = idNum;
+                }
+            });
+            subjectCount = maxIdNum;
+        } else {
+            addSubject(); // 초기에 아무 과목도 없으면 하나 추가
         }
     });
 
 
-    // 슬라이더 값 업데이트 함수 (0~100 사이 값 표시)
     function updateSliderValue(spanId, value) {
         const spanElement = document.getElementById(spanId);
         if (spanElement) {
@@ -94,27 +105,51 @@
         }
     }
 
-    // 추가 버튼을 눌렀을 때 빈 과목 입력 필드 추가
-    function addSubject() {
+    function addSubject(subjectName = '') { // 과목명을 인자로 받을 수 있도록 수정
         subjectCount++;
+        const subjectItemId = `subjectItem${subjectCount}`;
+        const nameId = `name${subjectCount}`;
+        const majorId = `major${subjectCount}`;
+        const weightId = `weight${subjectCount}`;
+        const sliderValueId = `sliderValue${subjectCount}`;
+
         const div = document.createElement('div');
         div.classList.add('subject-item');
+        div.id = subjectItemId; // 각 subject-item div에 고유 ID 부여
+
         div.innerHTML = `
-            <label for="name${subjectCount}">Subject:</label>
-            <input type="text" id="name${subjectCount}" name="name" required>
+            <div class="subject-inputs">
+                <label for="${nameId}">Subject:</label>
+                <input type="text" id="${nameId}" name="name" value="${subjectName}" required>
 
-            <label for="major${subjectCount}">Major Course:</label>
-            <input type="checkbox" id="major${subjectCount}" name="major" class="toggle-btn">
+                <label for="${majorId}">Major Course:</label>
+                <input type="checkbox" id="${majorId}" name="major" class="toggle-btn">
 
-            <label for="weight${subjectCount}">Importance Level:</label>
-            <input type="range" id="weight${subjectCount}" name="weight" min="0" max="100" step="1" value="50"
-                   oninput="updateSliderValue('sliderValue${subjectCount}', this.value)">
-            <span id="sliderValue${subjectCount}">50</span>
+                <label for="${weightId}">Importance Level:</label>
+                <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="50"
+                       oninput="updateSliderValue('${sliderValueId}', this.value)">
+                <span id="${sliderValueId}">50</span>
+            </div>
+            <button type="button" class="remove-subject-btn" onclick="removeSubject('${subjectItemId}')">Remove</button>
         `;
         document.getElementById('subjects').appendChild(div);
     }
 
-    // 에브리타임 URL 제출 함수
+    // 과목 입력 필드 제거 함수
+    function removeSubject(subjectItemId) {
+        const subjectItemToRemove = document.getElementById(subjectItemId);
+        if (subjectItemToRemove) {
+            // 최소 1개의 과목은 남겨두도록 처리 (선택적)
+            const subjectsDiv = document.getElementById('subjects');
+            if (subjectsDiv.getElementsByClassName('subject-item').length > 1) {
+                subjectItemToRemove.remove();
+            } else {
+                alert('At least one subject must remain.');
+            }
+        }
+    }
+
+
     function submitTimetableUrl() {
         const timetableUrl = document.getElementById('new_url').value;
         if (!timetableUrl) {
@@ -122,7 +157,6 @@
             return;
         }
 
-        // FormData를 사용하여 POST 요청 본문 구성 (Flask에서 request.form으로 받기 위함)
         const formData = new FormData();
         formData.append('new_url', timetableUrl);
 
@@ -131,17 +165,15 @@
             body: formData
         })
             .then(response => {
-                // 응답이 정상적이지 않을 경우 (예: 4xx, 5xx 오류) JSON 파싱 전 오류 처리
                 if (!response.ok) {
                     return response.json().then(errData => {
-                        // 서버에서 보낸 error 메시지가 있다면 사용, 없다면 일반 메시지
                         throw new Error(errData.error || `서버 오류가 발생했습니다. 상태 코드: ${response.status}`);
                     });
                 }
-                return response.json(); // Flask가 딕셔너리를 JSON으로 자동 변환한 것을 파싱
+                return response.json();
             })
             .then(data => {
-                console.log('서버 응답:', data); // 디버깅용: 서버 응답 전체 확인
+                console.log('서버 응답:', data);
                 if (data.error) {
                     alert('시간표 로딩 오류: ' + data.error);
                 } else if (data.timetable_slots && Array.isArray(data.timetable_slots)) {
@@ -150,11 +182,10 @@
                     alert('시간표를 성공적으로 불러왔습니다!');
                 } else {
                     alert('시간표 데이터를 불러오는데 실패했거나, 형식이 올바르지 않습니다.');
-                    // 데이터는 있지만 슬롯이 없는 경우 (예: 빈 시간표)
                     if (data.timetable_slots && data.timetable_slots.length === 0 && data.message) {
-                        alert(data.message); // 서버에서 보낸 메시지 표시
+                        alert(data.message);
                     }
-                    populateSubjectsFromTimetable([]); // 빈 배열로 호출하여 과목 필드 초기화 또는 기본 필드 추가
+                    populateSubjectsFromTimetable([]);
                 }
             })
             .catch(error => {
@@ -163,46 +194,26 @@
             });
     }
 
-    // 불러온 시간표 데이터로 과목 입력 필드 채우기
     function populateSubjectsFromTimetable(slots) {
         const subjectsDiv = document.getElementById('subjects');
         subjectsDiv.innerHTML = ''; // 기존 과목 입력 필드 모두 제거
-        subjectCount = 0; // 과목 카운터 초기화
+        // subjectCount는 addSubject 내부에서 증가하므로 여기서 초기화할 필요 없음 (단, ID 충돌 방지 위해 addSubject에서 사용하는 subjectCount는 계속 증가하는 값이어야 함)
+        // 또는 여기서 subjectCount = 0; 으로 초기화하고 addSubject가 이 값을 사용하도록 수정
 
         const uniqueSubjects = new Set();
         slots.forEach(slot => {
-            // slot[0]은 type ("수업" 또는 "공강")
-            // slot[1]은 name (과목명 또는 공강의 경우 빈 문자열)
             if (slot[0] === '수업' && slot[1] && slot[1].trim() !== "N/A" && slot[1].trim() !== "") {
                 uniqueSubjects.add(slot[1].trim());
             }
         });
 
         if (uniqueSubjects.size === 0) {
-            // alert("시간표에 유효한 수업 정보가 없습니다. 기본 입력 필드를 추가합니다.");
             addSubject(); // 불러온 수업이 없으면 기본 빈 과목 필드 1개 추가
             return;
         }
 
         uniqueSubjects.forEach(subjectName => {
-            subjectCount++;
-            const div = document.createElement('div');
-            div.classList.add('subject-item');
-            // 불러온 과목명으로 input 필드의 value를 설정
-            // Major Course 체크박스와 Importance Level 슬라이더는 기본값으로 설정
-            div.innerHTML = `
-                <label for="name${subjectCount}">Subject:</label>
-                <input type="text" id="name${subjectCount}" name="name" value="${subjectName}" required>
-
-                <label for="major${subjectCount}">Major Course:</label>
-                <input type="checkbox" id="major${subjectCount}" name="major" class="toggle-btn">
-
-                <label for="weight${subjectCount}">Importance Level:</label>
-                <input type="range" id="weight${subjectCount}" name="weight" min="0" max="100" step="1" value="50"
-                       oninput="updateSliderValue('sliderValue${subjectCount}', this.value)">
-                <span id="sliderValue${subjectCount}">50</span>
-            `;
-            subjectsDiv.appendChild(div);
+            addSubject(subjectName); // 수정된 addSubject 함수 호출
         });
     }
 </script>
