@@ -4,10 +4,10 @@
 ## Requirements Installation
 ```python
 
-pip install BeautifulSoup4 requests bs4 dateutil icalendar flask 
+pip install BeautifulSoup4 requests bs4 python-dateutil icalendar flask 
 pip install flask
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pytorch train_model.py
+py train_model.py
 
 
 ```
