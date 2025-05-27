@@ -115,12 +115,12 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
       <input type="text" id="${nameId}" name="name" value="${subjectName}" required>
 
       <div class="form-group major-course-group">
-        <label for="${majorId}" class="major-course-label">Major Course:</label>
+        <label for="${majorId}" class="major-course-label">Major Subject:</label>
         <input type="checkbox" id="${majorId}" name="major" class="toggle-btn" ${isMajor ? 'checked' : ''}>
       </div>
 
       <div class="form-group importance-level-group">
-        <label for="${weightId}" class="importance-label">Importance Level:</label>
+        <label for="${weightId}" class="importance-label">Importance:</label>
         <span id="${sliderValueId}" class="slider-value-display">${initialWeight}</span>
       </div>
       <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="${initialWeight}"
