@@ -101,7 +101,7 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
     subjectCount++;
     const subjectItemId = `subjectItem${subjectCount}`;
     const nameId        = `name${subjectCount}`;
-    const majorId       = `major${subjectCount}`;
+    const majorId       = `major${subjectCount}`; //
     const weightId      = `weight${subjectCount}`;
     const sliderValueId = `sliderValue${subjectCount}`;
 
@@ -114,8 +114,10 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
       <label for="${nameId}">Subject:</label>
       <input type="text" id="${nameId}" name="name" value="${subjectName}" required>
 
-      <label for="${majorId}">Major Course:</label>
-      <input type="checkbox" id="${majorId}" name="major" class="toggle-btn" ${isMajor ? 'checked' : ''}>
+      <div class="form-group major-course-group">
+        <label for="${majorId}" class="major-course-label">Major Course:</label>
+        <input type="checkbox" id="${majorId}" name="major" class="toggle-btn" ${isMajor ? 'checked' : ''}>
+      </div>
 
       <label for="${weightId}">Importance Level:</label>
       <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="${initialWeight}"
@@ -130,7 +132,7 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
         <button type="button" class="add-below-btn" onclick="addSubject(this.closest('.subject-item'))">+ Add Subject</button>
       </div>
     </div>
-  `;
+  `; //
 
     const subjectsDiv = document.getElementById('subjects');
     if (afterElement) {
