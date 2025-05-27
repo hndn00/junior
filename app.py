@@ -18,6 +18,39 @@ from convert import Convert #
 app = Flask(__name__) #
 app.secret_key = "your_secret_key_here_for_session" # 세션 사용을 위해 secret_key 필수
 
+# 과목 데이터 저장 관련 설정
+SUBJECT_DATA_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "subject_datas")
+SUBJECT_DATA_FILE = os.path.join(SUBJECT_DATA_DIR, "subject_datas.json")
+
+# 전역 변수로 시간표 슬롯 데이터 저장
+global_timetable_slots = []
+
+# 디렉토리 생성 함수
+def ensure_subject_data_dir():
+    if not os.path.exists(SUBJECT_DATA_DIR):
+        os.makedirs(SUBJECT_DATA_DIR)
+
+# 과목 데이터 저장 함수
+def save_subject_data(timetable_slots):
+    ensure_subject_data_dir()
+    with open(SUBJECT_DATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(timetable_slots, f, ensure_ascii=False, indent=2)
+
+# 과목 데이터 로드 함수
+def load_subject_data():
+    global global_timetable_slots
+    if os.path.exists(SUBJECT_DATA_FILE):
+        try:
+            with open(SUBJECT_DATA_FILE, 'r', encoding='utf-8') as f:
+                global_timetable_slots = json.load(f)
+            return global_timetable_slots
+        except Exception as e:
+            print(f"과목 데이터 로드 오류: {e}")
+    return []
+
+# 앱 시작 시 저장된 데이터 로드
+load_subject_data()
+
 # --- (기존 USER_CREDENTIALS, MODEL_PATH, 유틸리티 함수들은 동일) ---
 USER_CREDENTIALS = {
     "admin": "helloai",
@@ -185,6 +218,8 @@ def process_timetable():
 
 @app.route("/plan", methods=["GET", "POST"])
 def plan():
+    global global_timetable_slots
+    
     if request.method == "POST":
         # ... (기존의 slots_json, names, weights, model prediction 등 로직은 동일) ...
         # --- (이전 답변의 filtered_names, adjusted_weights, preds 등 계산 부분은 동일하게 유지) ---
@@ -323,13 +358,21 @@ def plan():
             # 필요하다면 DAYS_ORDER, time_intervals_display 등도 여기서 미리 생성해서 전달 가능
         }
 
+        # 현재 데이터를 전역 변수와 파일에 저장
+        global_timetable_slots = timetable_slots_full
+        save_subject_data(timetable_slots_full)
+
         # 세션 사용 대신 직접 템플릿으로 모든 데이터 전달
         return render_template("result.html",
                                results_for_pie_chart=results_for_pie_chart,
                                full_schedule_raw_data=full_schedule_raw_data_for_js)
 
-    # GET 요청 시
-    return render_template("index.html")
+    # GET 요청 시 저장된 데이터 불러오기
+    if not global_timetable_slots:
+        global_timetable_slots = load_subject_data()
+    
+    # 저장된 데이터가 있으면 index.html에 시간표 데이터 전달
+    return render_template("index.html", timetable_slots=json.dumps(global_timetable_slots) if global_timetable_slots else "")
 
 # `/show_full_schedule` 라우트는 이제 사용하지 않으므로 삭제하거나 주석 처리합니다.
 # @app.route("/show_full_schedule")
