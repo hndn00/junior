@@ -6,7 +6,7 @@
 
 pip install BeautifulSoup4 requests bs4 python-dateutil icalendar flask 
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-py train_model.py
+python3 train_model.py
 
 
 ```
@@ -17,7 +17,7 @@ py train_model.py
 
 flask run
 or
-py app.py
+python3 app.py
 
 ```
 
