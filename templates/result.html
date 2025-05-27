@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 모달 스타일 */
+        /* 기존 모달 스타일 ... */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.7); display: none;
@@ -25,8 +25,20 @@
             cursor: pointer; line-height: 1;
         }
         .modal-close-btn:hover { color: #333; }
-        .modal-footer { text-align: center; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee;}
-        .modal-footer button { margin: 0 8px; }
+        .modal-footer {
+            text-align: center; /* 버튼들을 가운데 정렬하기 위함 */
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        /* 이 부분을 수정합니다. */
+        .modal-footer button.action-btn { /* .action-btn 클래스를 가진 버튼에만 적용되도록 구체화 */
+            margin: 0 8px; /* 기존 여백 유지 */
+            width: 160px;  /* 버튼 너비를 동일하게 설정 (값은 필요에 따라 조절) */
+            box-sizing: border-box; /* padding과 border를 너비에 포함시킴 */
+            /* .action-btn 클래스에서 padding: 12px 20px; 와 font-size: 16px; 등이 이미 적용됩니다. */
+            /* text-align: center; 도 .action-btn 클래스에 의해 적용됩니다. */
+        }
 
         #popup-overlay { z-index: 1000; }
         #popup-container {
@@ -89,7 +101,6 @@
         <div id="timetableModalContent"></div>
         <div class="modal-footer">
             <button type="button" id="saveTimetableImageBtn" class="action-btn" style="background-color: #28a745;">이미지로 저장</button>
-            <button type="button" id="closeTimetableModalFooterBtn" class="action-btn" style="background-color: #dc3545;">Close</button>
         </div>
     </div>
 </div>
