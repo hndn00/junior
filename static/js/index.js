@@ -101,9 +101,9 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
     subjectCount++;
     const subjectItemId = `subjectItem${subjectCount}`;
     const nameId        = `name${subjectCount}`;
-    const majorId       = `major${subjectCount}`; //
+    const majorId       = `major${subjectCount}`;
     const weightId      = `weight${subjectCount}`;
-    const sliderValueId = `sliderValue${subjectCount}`;
+    const sliderValueId = `sliderValue${subjectCount}`; //
 
     const div = document.createElement('div');
     div.classList.add('subject-item');
@@ -119,10 +119,13 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
         <input type="checkbox" id="${majorId}" name="major" class="toggle-btn" ${isMajor ? 'checked' : ''}>
       </div>
 
-      <label for="${weightId}">Importance Level:</label>
+      <div class="form-group importance-level-group">
+        <label for="${weightId}" class="importance-label">Importance Level:</label>
+        <span id="${sliderValueId}" class="slider-value-display">${initialWeight}</span>
+      </div>
       <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="${initialWeight}"
+             class="importance-slider"
              oninput="updateSliderValue('${sliderValueId}', this.value)">
-      <span id="${sliderValueId}">${initialWeight}</span>
     </div>
     <div class="subject-actions-container">
       <div class="action-left">

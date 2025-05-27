@@ -427,3 +427,68 @@ button[type="submit"]:hover {
 .plus-style-button.action-btn .icon {
     margin-right: 5px; /* 아이콘과 텍스트 사이 간격 */
 }
+
+/* ... 기존 CSS 코드 ... */
+
+/* form-group은 이전 단계에서 추가되었을 수 있습니다. */
+.subject-item .form-group {
+    margin-top: 8px;
+    margin-bottom: 6px;
+}
+
+.major-course-group { /* 이전 단계에서 추가됨 */
+    display: flex;
+    align-items: center;
+}
+
+.major-course-label { /* 이전 단계에서 추가됨 */
+    display: inline-block;
+    margin-bottom: 0;
+    margin-right: 10px;
+    font-weight: 500;
+    color: #333;
+}
+
+.major-course-group .toggle-btn { /* 이전 단계에서 추가됨 */
+    vertical-align: middle;
+}
+
+/* Importance Level 그룹 스타일 */
+.importance-level-group {
+    display: flex; /* 레이블과 슬라이더 값을 가로로 배치 */
+    align-items: center; /* 수직 중앙 정렬 */
+    /* margin-bottom: 0; 슬라이더가 바로 밑에 오므로 하단 마진은 슬라이더에서 처리 */
+}
+
+.importance-label {
+    display: inline-block;
+    margin-bottom: 0; /* flex 아이템이므로 여기서의 margin-bottom은 불필요 */
+    margin-right: 10px; /* 레이블과 슬라이더 값 사이 간격 */
+    font-weight: 500;
+    color: #333;
+}
+
+.slider-value-display {
+    font-weight: 500;
+    color: #121416; /* 기존 span 스타일 참조 */ /* */
+    display: inline-block;
+    width: 30px; /* 기존 span 스타일 참조 */ /* */
+    text-align: right; /* 기존 span 스타일 참조 */ /* */
+    vertical-align: middle; /* 기존 span 스타일 참조 */ /* */
+}
+
+/* Importance 슬라이더 스타일 조정 */
+.importance-slider {
+    display: block; /* 슬라이더는 레이블 그룹 밑으로 오도록 block 처리 */
+    width: 100%; /* 슬라이더가 전체 너비를 차지하도록 설정 */
+    margin-top: 4px; /* 레이블 그룹과의 간격 */
+    /* 기존 input[type="range"] 스타일은 그대로 적용됩니다. */
+}
+
+
+/* 기존 input[type="range"] 스타일에서 width: calc(100% - 40px); 부분을 수정해야 할 수 있습니다. */
+/* .importance-slider 에서 width: 100%; 로 덮어쓰거나, 기존 스타일을 수정합니다. */
+/* 여기서는 .importance-slider 에 width: 100%; 를 추가하는 방식을 택했습니다. */
+/* 기존 .subject-item .subject-inputs span 스타일은 .slider-value-display 로 대체되었습니다. */
+
+/* ... 나머지 CSS 코드 ... */
