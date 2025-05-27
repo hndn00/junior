@@ -12,8 +12,41 @@ function closeModal() {
 let subjectCount = 0;
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (document.querySelectorAll('#subjects .subject-item').length === 0) {
+    // 저장된 시간표 데이터가 있는지 확인
+    const savedTimetableData = document.getElementById('timetable_slots').value;
+    
+    if (savedTimetableData) {
+        try {
+            const timetableSlots = JSON.parse(savedTimetableData);
+            if (Array.isArray(timetableSlots) && timetableSlots.length > 0) {
+                // 시간표 데이터가 있으면 해당 데이터로 과목 목록 채우기
+                populateSubjectsFromTimetable(timetableSlots);
+                console.log('저장된 시간표 데이터를 불러왔습니다.');
+            } else {
+                // 시간표 데이터가 비어있으면 초기 아이템 추가
+                addSubject(null);
+            }
+        } catch (e) {
+            console.error('저장된 시간표 데이터 파싱 오류:', e);
+            addSubject(null);
+        }
+    } else if (document.querySelectorAll('#subjects .subject-item').length === 0) {
         addSubject(null); // 초기 아이템 추가
+    }
+    
+    // 폼 제출 이벤트 처리
+    document.getElementById('planForm').addEventListener('submit', function() {
+        // 폼 제출 시 localStorage에 총 공부 시간 저장
+        const totalHours = document.getElementById('total_hours').value;
+        if (totalHours) {
+            localStorage.setItem('savedTotalHours', totalHours);
+        }
+    });
+    
+    // 저장된 총 공부 시간 불러오기
+    const savedTotalHours = localStorage.getItem('savedTotalHours');
+    if (savedTotalHours) {
+        document.getElementById('total_hours').value = savedTotalHours;
     }
 });
 
@@ -109,6 +142,11 @@ function submitTimetableUrl() {
             else if (Array.isArray(data.timetable_slots)) {
                 // ← 이 한 줄을 추가했습니다!
                 document.getElementById('timetable_slots').value = JSON.stringify(data.timetable_slots);
+
+                // 총 공부 시간도 저장합니다 (있는 경우)
+                if (data.total_hours) {
+                    document.getElementById('total_hours').value = data.total_hours;
+                }
 
                 populateSubjectsFromTimetable(data.timetable_slots);
                 closeModal();
