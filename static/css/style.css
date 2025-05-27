@@ -198,6 +198,40 @@ input[type="range"] {
     vertical-align: middle;
     margin-right: 8px;
 }
+/* ... 기존 CSS 코드 ... */
+
+.subject-item .form-group {
+    margin-top: 8px; /* 기존 label의 margin-top과 유사하게 설정 */
+    margin-bottom: 6px; /* 기존 label의 margin-bottom과 유사하게 설정 */
+}
+
+.major-course-group {
+    display: flex;
+    align-items: center; /* 레이블과 토글 버튼을 수직 중앙 정렬 */
+}
+
+.major-course-label {
+    display: inline-block; /* 레이블이 block이 아닌 inline-block으로 설정 */
+    margin-bottom: 0; /* flex 컨테이너에 있으므로 margin-bottom 제거 */
+    margin-right: 10px; /* 레이블과 토글 버튼 사이 간격 */
+    font-weight: 500; /* */
+    color: #333; /* */
+}
+
+/* 기존 .toggle-btn 스타일은 대부분 유지됩니다. */
+/* vertical-align: middle; 은 flex align-items: center; 로 대체되거나 함께 사용될 수 있습니다. */
+.major-course-group .toggle-btn {
+    vertical-align: middle; /* 이미 설정되어 있을 수 있으나 명시적으로 추가 */ /* */
+}
+
+/* 기존 label 스타일에 대한 조정이 필요할 수 있습니다. */
+/* 예를 들어, .subject-item label 의 display: block; 이 */
+/* .major-course-label 에 의해 오버라이드 되도록 하거나, */
+/* .major-course-label 에만 특정 스타일을 적용합니다. */
+/* 위의 .major-course-label 에서 display: inline-block; 으로 이미 처리했습니다. */
+
+/* ... 나머지 CSS 코드 ... */
+
 input[type="range"]::-webkit-slider-runnable-track {
     height: 8px;
     border-radius: 5px;
