@@ -103,7 +103,7 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
     const nameId        = `name${subjectCount}`;
     const majorId       = `major${subjectCount}`;
     const weightId      = `weight${subjectCount}`;
-    const sliderValueId = `sliderValue${subjectCount}`;
+    const sliderValueId = `sliderValue${subjectCount}`; //
 
     const div = document.createElement('div');
     div.classList.add('subject-item');
@@ -114,13 +114,18 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
       <label for="${nameId}">Subject:</label>
       <input type="text" id="${nameId}" name="name" value="${subjectName}" required>
 
-      <label for="${majorId}">Major Course:</label>
-      <input type="checkbox" id="${majorId}" name="major" class="toggle-btn" ${isMajor ? 'checked' : ''}>
+      <div class="form-group major-course-group">
+        <label for="${majorId}" class="major-course-label">Major Course:</label>
+        <input type="checkbox" id="${majorId}" name="major" class="toggle-btn" ${isMajor ? 'checked' : ''}>
+      </div>
 
-      <label for="${weightId}">Importance Level:</label>
+      <div class="form-group importance-level-group">
+        <label for="${weightId}" class="importance-label">Importance Level:</label>
+        <span id="${sliderValueId}" class="slider-value-display">${initialWeight}</span>
+      </div>
       <input type="range" id="${weightId}" name="weight" min="0" max="100" step="1" value="${initialWeight}"
+             class="importance-slider"
              oninput="updateSliderValue('${sliderValueId}', this.value)">
-      <span id="${sliderValueId}">${initialWeight}</span>
     </div>
     <div class="subject-actions-container">
       <div class="action-left">
@@ -130,7 +135,7 @@ function addSubject(afterElement, subjectName = '', initialWeight = '50', isMajo
         <button type="button" class="add-below-btn" onclick="addSubject(this.closest('.subject-item'))">+ Add Subject</button>
       </div>
     </div>
-  `;
+  `; //
 
     const subjectsDiv = document.getElementById('subjects');
     if (afterElement) {

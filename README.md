@@ -1,13 +1,12 @@
-# GongGang Genei
+# GongGang Genie
 
 
 ## Requirements Installation
 ```python
 
-pip install BeautifulSoup4 requests bs4 dateutil icalendar flask 
-pip install flask
+pip install BeautifulSoup4 requests bs4 python-dateutil icalendar flask 
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-pytorch train_model.py
+python3 train_model.py
 
 
 ```
@@ -18,7 +17,7 @@ pytorch train_model.py
 
 flask run
 or
-py app.py
+python3 app.py
 
 ```
 
