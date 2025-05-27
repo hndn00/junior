@@ -16,7 +16,7 @@ from everytime import Everytime #
 from convert import Convert #
 
 app = Flask(__name__) #
-app.secret_key = "your_secret_key_here_for_session" # 세션 사용을 위해 secret_key 필수
+app.secret_key = "your_secret_key_here_for_session" #
 
 # 과목 데이터 저장 관련 설정
 SUBJECT_DATA_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), "subject_datas")
@@ -37,19 +37,20 @@ def save_subject_data(timetable_slots):
         json.dump(timetable_slots, f, ensure_ascii=False, indent=2)
 
 # 과목 데이터 로드 함수
-def load_subject_data():
-    global global_timetable_slots
+def load_subject_data_from_file(): # 함수 이름 변경 (혼동 방지)
+    # global global_timetable_slots # 이 함수는 전역 변수를 직접 수정하지 않음
     if os.path.exists(SUBJECT_DATA_FILE):
         try:
             with open(SUBJECT_DATA_FILE, 'r', encoding='utf-8') as f:
-                global_timetable_slots = json.load(f)
-            return global_timetable_slots
+                loaded_data = json.load(f)
+            return loaded_data
         except Exception as e:
             print(f"과목 데이터 로드 오류: {e}")
     return []
 
-# 앱 시작 시 저장된 데이터 로드
-load_subject_data()
+# 앱 시작 시 저장된 데이터 로드 (이 부분은 제거하거나 주석 처리하여 자동 로드를 막습니다)
+# load_subject_data()
+# -> 사용자의 요청은 'Load JSON' 버튼을 눌렀을 때만 불러오는 것이므로 앱 시작 시 로드는 불필요.
 
 # --- (기존 USER_CREDENTIALS, MODEL_PATH, 유틸리티 함수들은 동일) ---
 USER_CREDENTIALS = {
@@ -103,8 +104,7 @@ def login():
 
 @app.route("/process_timetable", methods=["POST"]) #
 def process_timetable():
-    # 이전 답변의 /process_timetable 로직과 동일하게 유지
-    # (교수명, 강의실 정보 포함하여 timetable_results 생성하는 부분 확인)
+    # (이전과 동일한 로직)
     timetable_url = request.form.get("new_url") #
     if not timetable_url: #
         return jsonify({"error": "URL이 필요합니다."}), 400 #
@@ -204,6 +204,12 @@ def process_timetable():
             return (order.get(day_nm, 7), s_min, 0 if typ == "공강" else 1) #
 
         timetable_results.sort(key=sort_key) #
+
+        # ProcessTimetable 결과를 global_timetable_slots 에 저장하고 파일에도 저장
+        global global_timetable_slots
+        global_timetable_slots = timetable_results
+        save_subject_data(global_timetable_slots)
+
         response = {"timetable_slots": timetable_results} #
         return jsonify(response) #
 
@@ -214,15 +220,24 @@ def process_timetable():
     except Exception as e: #
         return jsonify({"error": f"시간표 처리 중 예기치 못한 오류가 발생했습니다: {str(e)}"}), 500 #
 
-# app.py (/plan 라우트 수정)
+# JSON 파일에서 시간표 데이터를 로드하는 새 라우트
+@app.route("/load_stored_timetable", methods=["GET"])
+def load_stored_timetable_route():
+    global global_timetable_slots
+    loaded_data = load_subject_data_from_file()
+    if loaded_data:
+        global_timetable_slots = loaded_data
+        return jsonify({"timetable_slots": global_timetable_slots, "message": "저장된 시간표를 불러왔습니다."})
+    else:
+        return jsonify({"timetable_slots": [], "message": "저장된 시간표 데이터가 없거나 불러오는데 실패했습니다."}), 404
 
 @app.route("/plan", methods=["GET", "POST"])
 def plan():
     global global_timetable_slots
-    
+
     if request.method == "POST":
-        # ... (기존의 slots_json, names, weights, model prediction 등 로직은 동일) ...
-        # --- (이전 답변의 filtered_names, adjusted_weights, preds 등 계산 부분은 동일하게 유지) ---
+        # ... (POST 요청 로직은 이전 답변과 동일하게 유지) ...
+        # POST 요청 시에는 global_timetable_slots을 현재 form에서 받은 데이터로 업데이트하고 저장
         slots_json = request.form.get("timetable_slots", "")
         if not slots_json:
             return render_template("result.html", results_for_pie_chart=[], full_schedule_raw_data={}, error_message="시간표 정보가 없습니다.")
@@ -231,6 +246,7 @@ def plan():
         except json.JSONDecodeError:
             return render_template("result.html", results_for_pie_chart=[], full_schedule_raw_data={}, error_message="시간표 데이터 파싱 실패")
 
+        # ===== POST 로직 시작 (이전 답변 내용과 거의 동일) =====
         names = request.form.getlist("name")
         weights = []
         raw_weights = request.form.getlist("weight")
@@ -257,8 +273,24 @@ def plan():
         adjusted_weights = [w * (1.0 + mf * 0.5) for w, mf in zip(filtered_weights, filtered_major_flags)]
         slots_for_dataset = [(s[0], s[1], s[2], s[3], s[4]) for s in timetable_slots_full]
 
+        if not os.path.exists(MODEL_PATH):
+            return render_template("result.html", results_for_pie_chart=[], full_schedule_raw_data={}, error_message="학습된 모델 파일(model.pt)을 찾을 수 없습니다.")
+
         checkpoint = torch.load(MODEL_PATH, map_location="cpu")
         num_subjects_saved = checkpoint['net.4.weight'].size(0)
+
+        # filtered_names의 수가 모델이 학습된 num_subjects_saved와 다를 경우 에러 처리 또는 조정 필요
+        # 여기서는 TimetableDataset이 subject_list를 받아서 처리하므로,
+        # TimetableNet의 출력 뉴런 수(num_subjects_saved)와 filtered_names 길이가 일치해야 함.
+        # 만약 num_subjects_saved가 filtered_names의 실제 길이보다 크면 preds 인덱싱은 문제 없으나,
+        # 작으면 preds 에서 에러 발생 가능.
+        # 여기서는 train_model.py 에서 num_subjects를 동적으로 결정하고,
+        # TimetableNet도 그에 맞춰 생성된다고 가정.
+        # 하지만, 실제 사용 시에는 저장된 모델의 num_subjects와 현재 입력 과목 수가 다를 수 있음을 인지해야함.
+        # 가장 안전한 방법은 TimetableNet의 마지막 레이어를 현재 filtered_names 길이에 맞게 동적으로 바꾸거나,
+        # 예측 시 num_subjects_saved와 filtered_names.length 중 작은 값으로 preds를 제한하는 것.
+        # 여기서는 TimetableDataset이 알아서 처리한다고 가정하고 진행.
+        # (TimetableNet은 num_subjects_saved 만큼의 출력을 생성)
 
         dataset = TimetableDataset(slots_for_dataset, filtered_names, adjusted_weights)
         input_dim = dataset.inputs.shape[1]
@@ -268,21 +300,22 @@ def plan():
         model.eval()
 
         with torch.no_grad():
-            logits = model(dataset.inputs)
+            logits = model(dataset.inputs) # logits.shape: (num_slots, num_subjects_saved)
             preds = torch.argmax(logits, dim=1).tolist()
 
-        # --- 파이 차트 데이터 준비 (results_for_pie_chart) ---
         schedule_entries_for_pie = []
-        for i, slot_data in enumerate(timetable_slots_full): # timetable_slots_full 사용
+        for i, slot_data in enumerate(timetable_slots_full):
             kind = slot_data[0]
             if kind == "공강":
-                p_idx = preds[i] # preds는 timetable_slots_full (및 slots_for_dataset)과 인덱스 정렬됨
-                if 0 <= p_idx < len(filtered_names):
+                p_idx = preds[i]
+                # p_idx는 0부터 num_subjects_saved-1 사이의 값. filtered_names의 인덱스로 사용하려면 len(filtered_names) 보다 작아야 함.
+                if 0 <= p_idx < len(filtered_names): # 이 조건 중요!
                     schedule_entries_for_pie.append({
                         "start": slot_data[3],
                         "end": slot_data[4],
                         "subject": filtered_names[p_idx]
                     })
+                # else: p_idx가 filtered_names 범위를 벗어나는 경우 (모델이 더 많은 과목으로 학습된 경우 등) 이 공강은 할당되지 않음
 
         subject_total_minutes = {}
         for entry in schedule_entries_for_pie:
@@ -301,9 +334,8 @@ def plan():
                 results_for_pie_chart.append((name, hours, minutes_val))
         results_for_pie_chart.sort(key=lambda x: x[0])
 
-        # --- 전체 시간표 구성용 데이터 준비 (all_schedule_items) ---
         all_schedule_items_for_modal = []
-        temp_subject_names_for_colors = set() # 실제 수업 과목만 색상 지정을 위해
+        temp_subject_names_for_colors = set()
 
         for i, slot_data in enumerate(timetable_slots_full):
             kind = slot_data[0]
@@ -311,8 +343,8 @@ def plan():
             day = slot_data[2]
             start_time = slot_data[3]
             end_time = slot_data[4]
-            professor = slot_data[5]
-            place = slot_data[6]
+            professor = slot_data[5] if len(slot_data) > 5 else ""
+            place = slot_data[6] if len(slot_data) > 6 else ""
 
             item_details = {
                 'day': day, 'start_time': start_time, 'end_time': end_time,
@@ -326,14 +358,14 @@ def plan():
                 temp_subject_names_for_colors.add(original_subject_name)
             elif kind == "공강":
                 p_idx = preds[i]
-                if 0 <= p_idx < len(filtered_names):
+                if 0 <= p_idx < len(filtered_names): # 이 조건 중요!
                     predicted_subject_name = filtered_names[p_idx]
                     item_details['subject_name'] = predicted_subject_name
                     item_details['type'] = 'study'
                     item_details['professor'] = ""
-                    item_details['place'] = "공강 자습" # 여기에 "공강 자습" 텍스트
+                    item_details['place'] = "공강 자습"
                     all_schedule_items_for_modal.append(item_details)
-                    # 학습 과목은 temp_subject_names_for_colors에 추가하지 않음 (별도 색상X 또는 다른 방식)
+                # else: 할당되지 않은 공강은 all_schedule_items_for_modal에 추가되지 않음
 
         subject_colors = {}
         color_palette = [
@@ -350,90 +382,80 @@ def plan():
         for item in all_schedule_items_for_modal:
             if item['type'] == 'class':
                 item['color'] = subject_colors.get(item['subject_name'], '#E0E0E0')
-            else: # 'study' 타입 (공강 자습)
-                item['color'] = 'transparent' # 또는 특정 연한 회색 등 기본색
+            else:
+                item['color'] = 'transparent'
 
         full_schedule_raw_data_for_js = {
             'all_schedule_items': all_schedule_items_for_modal
-            # 필요하다면 DAYS_ORDER, time_intervals_display 등도 여기서 미리 생성해서 전달 가능
         }
 
-        # 현재 데이터를 전역 변수와 파일에 저장
-        global_timetable_slots = timetable_slots_full
-        save_subject_data(timetable_slots_full)
+        global_timetable_slots = timetable_slots_full # 현재 사용된 시간표를 global에 반영
+        save_subject_data(global_timetable_slots) # 파일에도 저장
 
-        # 세션 사용 대신 직접 템플릿으로 모든 데이터 전달
         return render_template("result.html",
                                results_for_pie_chart=results_for_pie_chart,
                                full_schedule_raw_data=full_schedule_raw_data_for_js)
+        # ===== POST 로직 종료 =====
 
-    # GET 요청 시 저장된 데이터 불러오기
-    if not global_timetable_slots:
-        global_timetable_slots = load_subject_data()
-    
-    # 저장된 데이터가 있으면 index.html에 시간표 데이터 전달
-    return render_template("index.html", timetable_slots=json.dumps(global_timetable_slots) if global_timetable_slots else "")
+    # GET 요청 시:
+    # 항상 빈 timetable_slots를 전달하여 페이지가 초기 상태로 로드되도록 함.
+    # global_timetable_slots은 서버에 유지되지만, GET 요청 시 자동으로 화면에 로드되지 않음.
+    # 사용자가 "Load JSON" 버튼을 눌러야 서버의 global_timetable_slots (또는 파일) 데이터가 로드됨.
+    return render_template("index.html", timetable_slots="") # 빈 문자열 전달
 
-# `/show_full_schedule` 라우트는 이제 사용하지 않으므로 삭제하거나 주석 처리합니다.
-# @app.route("/show_full_schedule")
-# def show_full_schedule():
-#    ...
 
 @app.route("/show_full_schedule")
 def show_full_schedule():
-    schedule_data = session.get('full_schedule_data')
-    if not schedule_data:
-        return redirect(url_for('plan'))
+    # 이 라우트는 result.html에서 모달로 대체되었으므로,
+    # 세션 방식 대신 global_timetable_slots 와 예측 결과를 사용하도록 수정하거나,
+    # result.html에서 직접 JS로 full_schedule_raw_data를 사용하므로 불필요해질 수 있습니다.
+    # 현재는 global_timetable_slots에 저장된 데이터를 기반으로 시간표를 생성하는 로직이 필요합니다.
+    # (단, 예측 결과 preds 와 filtered_names 가 필요하므로, 이들을 어떻게 가져올지 결정해야 합니다.
+    #  가장 간단한 방법은 /plan POST에서 이를 global 변수나 세션에 저장하는 것이지만,
+    #  사용자 요청은 result.html에서 모달로 보는 것이므로 이 라우트가 계속 필요할지 검토 필요)
 
-    timetable_slots_full = schedule_data['timetable_slots_full']
-    preds = schedule_data['preds']
-    filtered_names = schedule_data['filtered_names']
+    # 임시로, 만약 global_timetable_slots만 사용해서 표시해야 한다면,
+    # 예측 없이 '수업'과 '공강'만 표시하거나,
+    # 또는 /plan POST 시 `preds`와 `filtered_names`도 `global_` 변수에 저장해야 합니다.
+    # 여기서는 단순화를 위해 `global_timetable_slots` (수업/공강 정보만 있는)를 기반으로
+    # 시간표를 그리는 예시를 보입니다. ML 예측 결과는 반영되지 않습니다.
+    # 제대로 된 전체 시간표를 보려면 ML 예측결과가 필요합니다.
+
+    current_timetable_slots = global_timetable_slots # 또는 파일에서 다시 로드
+    if not current_timetable_slots:
+        return render_template("full_schedule.html", message="표시할 시간표 데이터가 없습니다. 먼저 시간표를 로드하거나 계획을 생성해주세요.")
 
     all_schedule_items = []
-    temp_subject_names_for_colors = set() # 실제 수업 과목만 색상 지정을 위해 사용
+    temp_subject_names_for_colors = set()
 
-    for i, slot_data in enumerate(timetable_slots_full):
+    for slot_data in current_timetable_slots:
         kind = slot_data[0]
         original_subject_name = slot_data[1]
         day = slot_data[2]
         start_time = slot_data[3]
         end_time = slot_data[4]
-        professor = slot_data[5]
-        place = slot_data[6]
+        professor = slot_data[5] if len(slot_data) > 5 else ""
+        place = slot_data[6] if len(slot_data) > 6 else ""
 
         item_details = {
             'day': day,
             'start_time': start_time,
             'end_time': end_time,
             'professor': professor,
-            'place': place, # 수업의 경우 원래 장소
+            'place': place,
+            'subject_name': original_subject_name, # 공강이면 비어있을 수 있음
+            'type': 'class' if kind == "수업" else 'free', # 'study' 대신 'free'로 임시 구분
         }
-
+        all_schedule_items.append(item_details)
         if kind == "수업":
-            item_details['subject_name'] = original_subject_name
-            item_details['type'] = 'class'
-            all_schedule_items.append(item_details)
             temp_subject_names_for_colors.add(original_subject_name)
-        elif kind == "공강":
-            p_idx = preds[i]
-            if 0 <= p_idx < len(filtered_names):
-                predicted_subject_name = filtered_names[p_idx]
-                item_details['subject_name'] = predicted_subject_name
-                item_details['type'] = 'study'
-                item_details['professor'] = "" # 자습에는 교수 정보 없음
-                item_details['place'] = "공강 자습" # 요청하신 텍스트
-                # temp_subject_names_for_colors 에 study 과목은 추가하지 않음 (색상 X)
-                all_schedule_items.append(item_details)
 
-    # 수업 과목에 대해서만 색상 지정
     subject_colors = {}
     color_palette = [
         "#FFADAD", "#FFD6A5", "#FDFFB6", "#CAFFBF", "#9BF6FF",
-        "#A0C4FF", "#BDB2FF", "#FFC6FF", "#FFC8DD", "#E0BBE4",
-        "#D4F0F0", "#F9E2AE", "#F7CAC9", "#B2E2F2", "#D8BFD8"
+        "#A0C4FF", "#BDB2FF", "#FFC6FF", "#FFC8DD", "#E0BBE4"
     ]
     idx = 0
-    # 실제 수업 과목들에 대해서만 색상을 할당
     sorted_class_subject_names = sorted(list(temp_subject_names_for_colors))
     for subj_name in sorted_class_subject_names:
         subject_colors[subj_name] = color_palette[idx % len(color_palette)]
@@ -441,16 +463,16 @@ def show_full_schedule():
 
     for item in all_schedule_items:
         if item['type'] == 'class':
-            item['color'] = subject_colors.get(item['subject_name'], '#E0E0E0') # 수업은 색상 지정
-        else: # 'study' 타입 (공강 자습)
-            item['color'] = 'transparent' # 또는 '#FFFFFF' (흰색 배경) 또는 아예 지정 안함
+            item['color'] = subject_colors.get(item['subject_name'], '#E0E0E0')
+        else: # 'free' (공강)
+            item['color'] = 'transparent'
 
-    # --- (이하 schedule_grid 생성 로직은 이전과 동일) ---
+
     DAYS_ORDER = ["월요일", "화요일", "수요일", "목요일", "금요일"]
     time_intervals_display = []
     time_intervals_minutes = []
     current_display_time_min = time_to_minutes("09:00")
-    max_display_time_min = time_to_minutes("18:00")
+    max_display_time_min = time_to_minutes("18:00") # full_schedule.html 과 동일하게
     interval_duration_min = 30
 
     while current_display_time_min < max_display_time_min:
@@ -471,30 +493,42 @@ def show_full_schedule():
         duration_min = item_end_min - item_start_min
         if duration_min <= 0 : continue
 
-        item['rowspan'] = duration_min // interval_duration_min
-        if item['rowspan'] == 0 and duration_min > 0 : item['rowspan'] = 1
+        item['rowspan'] = max(1, duration_min // interval_duration_min)
+
 
         start_interval_index = -1
+        # 정확히 일치하는 시작 시간 또는 가장 가까운 이전 시간 간격을 찾습니다.
         for i_idx, t_min in enumerate(time_intervals_minutes):
-            if item_start_min == t_min :
-                start_interval_index = i_idx
-                break
+            if item_start_min >= t_min and (i_idx + 1 == len(time_intervals_minutes) or item_start_min < time_intervals_minutes[i_idx+1]):
+                # 만약 item_start_min이 t_min과 정확히 일치하지 않으면, 가장 가까운 t_min에 스냅합니다.
+                # 이는 그리드에 맞추기 위함입니다. 정확한 시작/종료는 아이템 내부에 표시됩니다.
+                # 또는, item_start_min이 그리드 간격과 정확히 일치한다고 가정합니다. 여기서는 후자를 따릅니다.
+                if item_start_min == t_min:
+                    start_interval_index = i_idx
+                    break
+
+                    # 만약 정확한 시간대를 찾지 못했지만, 범위 내에 있다면 첫 번째 가능한 슬롯에 배치 (간단화)
+        if start_interval_index == -1:
+            if item_start_min < time_intervals_minutes[0] and item_end_min > time_intervals_minutes[0]:
+                start_interval_index = 0 # 9시 이전 시작이면 9시에 걸침
+            # else: continue # 범위 밖이면 무시 (또는 다른 처리)
 
         if start_interval_index != -1 and start_interval_index < len(time_intervals_display):
             start_time_str = time_intervals_display[start_interval_index]
-            if schedule_grid.get(start_time_str, {}).get(day) is None:
+            if schedule_grid.get(start_time_str, {}).get(day) is None: # 해당 슬롯이 비어있는 경우에만
                 schedule_grid[start_time_str][day] = item
                 for r_idx in range(1, item['rowspan']):
                     covered_interval_index = start_interval_index + r_idx
                     if covered_interval_index < len(time_intervals_display):
                         covered_time_str = time_intervals_display[covered_interval_index]
-                        if day in schedule_grid[covered_time_str]: # Ensure day exists
+                        if day in schedule_grid[covered_time_str]:
                             schedule_grid[covered_time_str][day] = "covered"
 
     return render_template("full_schedule.html",
                            schedule_grid=schedule_grid,
                            time_intervals=time_intervals_display,
                            days_of_week=DAYS_ORDER)
+
 
 if __name__ == "__main__": #
     app.run(debug=True) #

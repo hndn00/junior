@@ -5,7 +5,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Study Planner</title>
-    <!-- 정적 파일은 url_for로 불러옵니다 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
@@ -18,40 +17,32 @@
 
     <h1>Study Planner</h1>
 
-    <!-- planForm: POST /plan 으로 제출 -->
     <form id="planForm" action="{{ url_for('plan') }}" method="post">
-        <!-- ① Load Timetable 후 JS가 채워줄 숨은 필드 -->
         <input
                 type="hidden"
                 id="timetable_slots"
                 name="timetable_slots"
                 value="{{ timetable_slots|default('') }}" />
 
-{#        <!-- ② 총 공부 가능 시간 -->#}
-{#        <div class="field-group">#}
-{#            <label for="total_hours">Total Study Time (hours):</label>#}
-{#            <input#}
-{#                    type="number"#}
-{#                    id="total_hours"#}
-{#                    name="total_hours"#}
-{#                    step="0.1"#}
-{#                    required />#}
-{#        </div>#}
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <button
+                    type="button"
+                    class="add-timetable-btn"
+                    onclick="openModal()"
+                    style="width: calc(50% - 5px);"> Load Timetable (Everytime)
+            </button>
+            <button
+                    type="button"
+                    id="loadJsonBtn" class="add-timetable-btn"
+                    style="width: calc(50% - 5px); background-color: #A9A9A9;"> Load Saved Timetable
+            </button>
+        </div>
 
-        <!-- ③ 에브리타임 URL → 공강·수업 슬롯 로딩 -->
-        <button
-                type="button"
-                class="add-timetable-btn"
-                onclick="openModal()">
-            Load Timetable
-        </button>
 
         <hr />
 
-        <!-- ④ 과목 리스트: JS에서 addSubject를 호출해 동적 생성 -->
         <div id="subjects"></div>
 
-        <!-- ⑤ 폼 제출 -->
         <button type="submit" class="submit-btn">
             Calculate Study Time
         </button>
@@ -64,7 +55,6 @@
     {% endif %}
 </div>
 
-<!-- 모달 오버레이 -->
 <div class="overlay" id="overlay"></div>
 <div class="modal" id="modal">
     <button class="close-btn" onclick="closeModal()">×</button>
@@ -88,7 +78,6 @@
     </form>
 </div>
 
-<!-- index.js 불러오기 -->
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
 </html>
