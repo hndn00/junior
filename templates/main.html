@@ -4,7 +4,47 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Study Planner - Main</title>
-  <link rel="stylesheet" href="static/css/main.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  <style>
+    /* 페이지 전체 배경 이미지 설정 */
+    body {
+      background-image: url("{{ url_for('static', filename='image/wallpaper.png') }}");
+      background-size: cover; /* 이미지를 화면 전체에 꽉 채움 */
+      background-repeat: no-repeat; /* 이미지 반복 방지 */
+      background-position: center; /* 이미지 세로 방향으로 10px 아래로 이동 */
+    }
+  </style>
+<style>
+  /* 텍스트를 오른쪽으로 5px 이동 */
+  .center h1,
+  .center h2 {
+    position: relative; /* 위치 이동을 위해 relative 설정 */
+    left: 350px; /* 오른쪽으로 5px 이동 */
+  }
+
+  .center h1 {
+    margin-bottom: 5px; /* h1과 h2 사이 공간을 줄임 */
+  }
+
+  .center h2 {
+    margin-top: 0; /* h2 위쪽 여백 제거 */
+  }
+</style>
+<style>
+  /* h1과 h2 블럭을 아래로 이동 */
+  .center h1,
+  .center h2 {
+    margin-top: 140px; /* 원하는 만큼 값을 설정하여 아래로 이동 */
+  }
+
+  .center h1 {
+    margin-bottom: 5px; /* h1과 h2 사이 간격 */
+  }
+
+  .center h2 {
+    margin-top: 10px; /* 추가적인 하단 여백 */
+  }
+</style>
 </head>
 <body>
 <div class="center">
@@ -15,8 +55,9 @@
   <h1>Welcome, {{ session.username }}</h1>
   <button onclick="location.href='/plan'">Start Study Planner</button>
   {% else %}
-  <h1>Welcome to Study Planner</h1>
-  <button onclick="location.href='/login'">Log In</button>
+  <h1>Welcome to</h1>
+  <h2>Study Planner</h2>
+  <button onclick="location.href='/login'">Start</button>
   {% endif %}
 </div>
 </body>
