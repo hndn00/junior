@@ -30,23 +30,28 @@ def ensure_subject_data_dir():
     if not os.path.exists(SUBJECT_DATA_DIR):
         os.makedirs(SUBJECT_DATA_DIR)
 
-# 과목 데이터 저장 함수
-def save_subject_data(timetable_slots):
+# 과목 데이터 저장 함수 수정: timetable_slots와 subjects를 함께 저장
+def save_subject_data(timetable_slots, subjects=None):
     ensure_subject_data_dir()
+    data = {"timetable_slots": timetable_slots}
+    if subjects is not None:
+        data["subjects"] = subjects
     with open(SUBJECT_DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(timetable_slots, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
-# 과목 데이터 로드 함수
-def load_subject_data_from_file(): # 함수 이름 변경 (혼동 방지)
-    # global global_timetable_slots # 이 함수는 전역 변수를 직접 수정하지 않음
+# 과목 데이터 로드 함수 수정: timetable_slots와 subjects를 함께 반환
+def load_subject_data_from_file():
     if os.path.exists(SUBJECT_DATA_FILE):
         try:
             with open(SUBJECT_DATA_FILE, 'r', encoding='utf-8') as f:
                 loaded_data = json.load(f)
-            return loaded_data
+            # timetable_slots와 subjects 모두 반환
+            timetable_slots = loaded_data.get("timetable_slots", [])
+            subjects = loaded_data.get("subjects", [])
+            return timetable_slots, subjects
         except Exception as e:
             print(f"과목 데이터 로드 오류: {e}")
-    return []
+    return [], []
 
 # 앱 시작 시 저장된 데이터 로드 (이 부분은 제거하거나 주석 처리하여 자동 로드를 막습니다)
 # load_subject_data()
@@ -208,6 +213,7 @@ def process_timetable():
         # ProcessTimetable 결과를 global_timetable_slots 에 저장하고 파일에도 저장
         global global_timetable_slots
         global_timetable_slots = timetable_results
+        # timetable_slots만 저장 (subjects는 없음)
         save_subject_data(global_timetable_slots)
 
         response = {"timetable_slots": timetable_results} #
@@ -224,12 +230,12 @@ def process_timetable():
 @app.route("/load_stored_timetable", methods=["GET"])
 def load_stored_timetable_route():
     global global_timetable_slots
-    loaded_data = load_subject_data_from_file()
-    if loaded_data:
-        global_timetable_slots = loaded_data
-        return jsonify({"timetable_slots": global_timetable_slots, "message": "저장된 시간표를 불러왔습니다."})
+    timetable_slots, subjects = load_subject_data_from_file()
+    if timetable_slots:
+        global_timetable_slots = timetable_slots
+        return jsonify({"timetable_slots": global_timetable_slots, "subjects": subjects, "message": "저장된 시간표를 불러왔습니다."})
     else:
-        return jsonify({"timetable_slots": [], "message": "저장된 시간표 데이터가 없거나 불러오는데 실패했습니다."}), 404
+        return jsonify({"timetable_slots": [], "subjects": [], "message": "저장된 시간표 데이터가 없거나 불러오는데 실패했습니다."}), 404
 
 @app.route("/plan", methods=["GET", "POST"])
 def plan():
@@ -390,7 +396,16 @@ def plan():
         }
 
         global_timetable_slots = timetable_slots_full # 현재 사용된 시간표를 global에 반영
-        save_subject_data(global_timetable_slots) # 파일에도 저장
+        # 최종 과목 리스트를 저장할 데이터로 구성
+        subjects_for_save = []
+        for i in range(len(filtered_names)):
+            subjects_for_save.append({
+                "name": filtered_names[i],
+                "weight": filtered_weights[i],
+                "major": bool(filtered_major_flags[i])
+            })
+        # timetable_slots와 최종 subjects를 함께 저장
+        save_subject_data(global_timetable_slots, subjects_for_save)
 
         return render_template("result.html",
                                results_for_pie_chart=results_for_pie_chart,

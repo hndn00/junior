@@ -56,8 +56,35 @@ document.addEventListener('DOMContentLoaded', function() {
         loadJsonButton.addEventListener('click', loadTimetableFromJson);
     }
 
-    // 폼 제출 이벤트 처리 (localStorage 관련 코드는 그대로 유지)
-    // ... (이하 코드는 이전 답변과 동일) ...
+    // 폼 제출 이벤트 처리 (최종 subject 정보를 hidden input에 추가)
+    const planForm = document.getElementById('planForm');
+    if (planForm) {
+        planForm.addEventListener('submit', function(e) {
+            // 기존에 추가된 hidden input 제거
+            const oldSubjectsInput = document.getElementById('subjects_json');
+            if (oldSubjectsInput) oldSubjectsInput.remove();
+
+            // 현재 화면의 subject 정보를 모두 수집
+            const subjectItems = document.querySelectorAll('.subject-item');
+            const subjectsArr = [];
+            subjectItems.forEach(item => {
+                const name = item.querySelector('input[name="name"]').value.trim();
+                const weight = item.querySelector('input[name="weight"]').value;
+                const major = item.querySelector('input[name="major"]').checked;
+                if (name) {
+                    subjectsArr.push({ name, weight: Number(weight), major });
+                }
+            });
+
+            // hidden input으로 추가
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'subjects_json';
+            input.id = 'subjects_json';
+            input.value = JSON.stringify(subjectsArr);
+            planForm.appendChild(input);
+        });
+    }
 });
 
 // ... (다른 함수들은 이전 답변과 동일하게 유지) ...
@@ -236,16 +263,14 @@ function loadTimetableFromJson() {
             if (data.error) { // app.py에서 error를 반환하는 경우가 있는지 확인 필요 (현재는 message 사용)
                 alert('저장된 시간표 로딩 오류: ' + data.error);
             } else if (Array.isArray(data.timetable_slots)) {
-                if (data.timetable_slots.length > 0) {
-                    document.getElementById('timetable_slots').value = JSON.stringify(data.timetable_slots);
-                    populateSubjectsFromTimetable(data.timetable_slots);
-                    alert(data.message || '저장된 시간표를 성공적으로 불러왔습니다!');
+                document.getElementById('timetable_slots').value = JSON.stringify(data.timetable_slots);
+                // subjects도 있으면 반영
+                if (Array.isArray(data.subjects) && data.subjects.length > 0) {
+                    populateSubjectsFromSavedSubjects(data.subjects);
                 } else {
-                    // timetable_slots가 비어있는 배열일 경우 (파일은 있지만 내용이 빈 경우 등)
-                    document.getElementById('timetable_slots').value = JSON.stringify([]); // 빈 값으로 설정
-                    populateSubjectsFromTimetable([]); // 과목 목록 비우기 또는 초기화
-                    alert(data.message || '저장된 시간표 데이터가 비어있습니다.');
+                    populateSubjectsFromTimetable(data.timetable_slots);
                 }
+                alert(data.message || '저장된 시간표를 성공적으로 불러왔습니다!');
             } else {
                 // 응답 형식이 예상과 다를 경우
                 alert('저장된 시간표 데이터를 불러오지 못했거나, 형식이 올바르지 않습니다.');
@@ -257,6 +282,24 @@ function loadTimetableFromJson() {
         });
 }
 
+// 저장된 subjects 배열로 과목 입력 필드 채우기
+function populateSubjectsFromSavedSubjects(subjects) {
+    const subjectsDiv = document.getElementById('subjects');
+    subjectsDiv.innerHTML = '';
+    subjectCount = 0;
+    if (Array.isArray(subjects) && subjects.length > 0) {
+        subjects.forEach(subj => {
+            addSubject(
+                null,
+                subj.name || '',
+                subj.weight !== undefined ? String(subj.weight) : '50',
+                subj.major === true
+            );
+        });
+    } else {
+        addSubject(null);
+    }
+}
 
 function populateSubjectsFromTimetable(slots) {
     const subjectsDiv = document.getElementById('subjects');
