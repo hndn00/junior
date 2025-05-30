@@ -23,8 +23,7 @@
                 type="hidden"
                 id="timetable_slots"
                 name="timetable_slots"
-                value="{{ timetable_slots|default('') }}" />
-
+                value="{{ timetable_slots|default('')|tojson|safe }}" />
         <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
             <button
                     type="button"
@@ -39,10 +38,10 @@
             </button>
         </div>
 
-
         <hr />
 
-        <div id="subjects"></div>
+        <div id="subjects">
+        </div>
 
         <button type="submit" class="submit-btn">
             Calculate Study Time
@@ -50,7 +49,7 @@
     </form>
 
     {% if not session.username %}
-        <div class="back-to-main">
+        <div class="back-to-main" style="text-align: center; margin-top: 20px;">
             <a href="{{ url_for('main') }}">← Back to Main</a>
         </div>
     {% endif %}
@@ -72,12 +71,15 @@
         </div>
         <button
                 type="button"
-                class="save-timetable-btn"
-                onclick="submitTimetableUrl()">
+                class="add-timetable-btn" onclick="submitTimetableUrl()">
             Save Timetable
         </button>
     </form>
 </div>
+
+<script id="initial_subjects_data_script_tag" type="application/json">
+    {{ initial_subjects_data|default('[]')|tojson|safe }}
+</script>
 
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 </body>
