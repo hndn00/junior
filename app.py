@@ -170,6 +170,20 @@ def load_stored_timetable_route():
     return jsonify({"timetable_slots": [], "subjects": [], "message": "저장된 데이터가 없습니다."}), 404
 
 
+@app.route("/loading")
+def loading():
+    """
+    로딩 페이지를 표시하고 form 데이터를 전달합니다.
+    """
+    timetable_data = request.args.get('timetable_data', '')
+    subjects_data = request.args.get('subjects_data', '')
+    
+    return render_template(
+        "loading.html",
+        timetable_slots=timetable_data,
+        subjects_json=subjects_data
+    )
+
 @app.route("/plan", methods=["GET","POST"])
 def plan():
     global global_timetable_slots, global_study_planner
