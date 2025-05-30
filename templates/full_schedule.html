@@ -104,9 +104,10 @@
         <p style="text-align: center;">시간표 데이터가 없습니다. 먼저 시간표를 로드하고 학습 계획을 계산해주세요.</p>
     {% endif %}
     <div class="action-buttons">
-        <a href="{{ url_for('plan') }}" class="back-button">← 학습 계획 페이지로 돌아가기</a>
+        <a href="{{ url_for('show_result') }}" class="back-button">
+            ← 학습 계획 페이지로 돌아가기
+        </a>
     </div>
-</div>
 
 <script>
     function saveScheduleAsImage() {
