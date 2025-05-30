@@ -18,7 +18,7 @@
 
     <h1>Study Planner</h1>
 
-    <form id="planForm" action="{{ url_for('plan') }}" method="post">
+    <form id="planForm" action="{{ url_for('loading') }}" method="get" onsubmit="return prepareFormSubmission()">
         <input
                 type="hidden"
                 id="timetable_slots"
@@ -82,5 +82,39 @@
 </script>
 
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+<script>
+    function prepareFormSubmission() {
+        // 기존 index.js에서 실행되는 로직을 복제
+        const subjectItems = document.querySelectorAll('.subject-item');
+        const subjectsArr = [];
+        
+        subjectItems.forEach(item => {
+            const nameInput = item.querySelector('input[name="name"]');
+            const weightInput = item.querySelector('input[name="weight"]');
+            const majorCheckbox = item.querySelector('input[name="major"]');
+
+            const name = nameInput ? nameInput.value.trim() : "";
+            const weight = weightInput ? weightInput.value : "50"; // default if somehow missing
+            const major = majorCheckbox ? majorCheckbox.checked : false; // default if somehow missing
+
+            if (name) {
+                subjectsArr.push({ name, weight: Number(weight), major });
+            }
+        });
+        
+        // 과목 JSON 데이터를 URL 파라미터로 전달
+        if (subjectsArr.length > 0) {
+            const timetableSlotsData = document.getElementById('timetable_slots').value;
+            const subjectsJsonData = JSON.stringify(subjectsArr);
+            
+            // URL 파라미터로 데이터 전달
+            window.location.href = `{{ url_for('loading') }}?timetable_data=${encodeURIComponent(timetableSlotsData)}&subjects_data=${encodeURIComponent(subjectsJsonData)}`;
+            return false; // 폼 제출 방지
+        }
+        
+        alert('최소 하나 이상의 과목을 입력해주세요.');
+        return false; // 폼 제출 방지
+    }
+</script>
 </body>
 </html>
