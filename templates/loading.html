@@ -32,16 +32,6 @@
             margin-bottom: 20px;
         }
 
-        .loading-spinner {
-            border: 8px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top: 8px solid #667eea;
-            width: 60px;
-            height: 60px;
-            animation: spin 1.5s linear infinite;
-            margin: 20px auto;
-        }
-
         .loading-message {
             font-size: 18px;
             color: #555;
@@ -74,11 +64,6 @@
             font-weight: bold;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
         /* Progress bar styles */
         .progress-container {
             width: 100%;
@@ -101,8 +86,6 @@
 <body>
     <div class="loading-container">
         <h1>AI 학습 계획 생성 중</h1>
-        
-        <div class="loading-spinner"></div>
         
         <div class="loading-message">
             인공신경망이 최적의 학습 계획을 생성하고 있습니다.
