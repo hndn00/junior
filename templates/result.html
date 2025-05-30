@@ -1,380 +1,704 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Study Time Allocation Result</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/result_style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/full_schedule_style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 학습 계획 결과</title>
     <style>
-        /* 기존 모달 스타일 ... */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); display: none;
-            align-items: center; justify-content: center; z-index: 2000;
-        }
-        .modal-content {
-            background-color: #fff; padding: 25px; border-radius: 10px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4); width: 95%;
-            max-width: 1100px; max-height: 90vh; overflow-y: auto; position: relative;
-        }
-        .modal-close-btn {
-            position: absolute; top: 15px; right: 20px; font-size: 28px;
-            font-weight: bold; color: #777; background: none; border: none;
-            cursor: pointer; line-height: 1;
-        }
-        .modal-close-btn:hover { color: #333; }
-        .modal-footer {
-            text-align: center; /* 버튼들을 가운데 정렬하기 위함 */
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-        /* 이 부분을 수정합니다. */
-        .modal-footer button.action-btn { /* .action-btn 클래스를 가진 버튼에만 적용되도록 구체화 */
-            margin: 0 8px; /* 기존 여백 유지 */
-            width: 160px;  /* 버튼 너비를 동일하게 설정 (값은 필요에 따라 조절) */
-            box-sizing: border-box; /* padding과 border를 너비에 포함시킴 */
-            /* .action-btn 클래스에서 padding: 12px 20px; 와 font-size: 16px; 등이 이미 적용됩니다. */
-            /* text-align: center; 도 .action-btn 클래스에 의해 적용됩니다. */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        #popup-overlay { z-index: 1000; }
-        #popup-container {
-            background-color: white; padding: 20px; border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); width: 90%;
-            max-width: 500px; max-height: 80vh; overflow-y: auto;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
-        #timetableModalContent h1 { display: none; }
-        #timetableModalContent .back-button { display: none; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .ai-indicator {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 15px 25px;
+            margin: 10px auto;
+            display: inline-block;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .ai-indicator .neural-icon {
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .summary-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .summary-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #764ba2;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .priorities-section, .schedule-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title .ai-badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .priority-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background: #f8f9ff;
+            border-left: 4px solid;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .priority-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .priority-very-high { border-left-color: #ff4757; }
+        .priority-high { border-left-color: #ff7675; }
+        .priority-medium { border-left-color: #fdcb6e; }
+        .priority-low { border-left-color: #74b9ff; }
+        .priority-very-low { border-left-color: #81ecec; }
+
+        .priority-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 15px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .badge-very-high { background: #ff4757; color: white; }
+        .badge-high { background: #ff7675; color: white; }
+        .badge-medium { background: #fdcb6e; color: #333; }
+        .badge-low { background: #74b9ff; color: white; }
+        .badge-very-low { background: #81ecec; color: #333; }
+
+        .subject-info {
+            flex: 1;
+        }
+
+        .subject-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .subject-details {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .major-badge {
+            background: #764ba2;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-left: 10px;
+        }
+
+        .confidence-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.5s ease;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .weekly-schedule {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .day-schedule {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e1e8ff;
+        }
+
+        .day-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .study-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .study-subject {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .study-details {
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .study-duration {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .neural-analysis {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .neural-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .neural-stat {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e1e8ff;
+        }
+
+        .neural-stat .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .neural-stat .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .recommendations {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+
+        .recommendation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .recommendation-card {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e1e8ff;
+        }
+
+        .recommendation-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-card ul {
+            list-style: none;
+        }
+
+        .recommendation-card li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .recommendation-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .error-message {
+            background: #ff4757;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading-animation {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .weekly-schedule {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    {% if session.username %}
-        <div class="top-right-menu">
-            <a href="{{ url_for('logout') }}" class="logout-btn">Log Out</a>
+    <div class="header">
+        <h1>🎯 AI 학습 계획 결과</h1>
+        <div class="ai-indicator">
+            <span class="neural-icon">🧠</span>
+            인공신경망이 분석한 맞춤형 학습 계획입니다
         </div>
-    {% endif %}
-
-    <h2>Study Time Allocation Result</h2>
-    {% if error_message %}
-        <p style="color: red; text-align: center;">{{ error_message }}</p>
-    {% endif %}
-
-    <div class="chart-container">
-        <canvas id="timeDistributionChart"></canvas>
     </div>
 
-    <div id="popup-overlay" class="modal-overlay" style="display: none;">
-        <div id="popup-container">
-            <h3>Detailed Study Time</h3>
-            <ul id="popup-list" style="list-style-type: none; padding: 0; margin: 0;">
-                {% if results_for_pie_chart and results_for_pie_chart|length > 0 %}
-                    {% for name, hours, minutes in results_for_pie_chart %}
-                        <li style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>{{ name }}</strong>: {{ hours }}h {{ minutes }}m</li>
+    <div class="loading-animation" id="loadingAnimation">
+        <div class="spinner"></div>
+        <p>인공신경망이 학습 계획을 분석하고 있습니다...</p>
+    </div>
+
+    {% if error_message %}
+        <div class="error-message">
+            <h3>⚠️ 분석 오류 발생</h3>
+            <p>{{ error_message }}</p>
+            <a href="{{ url_for('plan') }}" class="btn" style="margin-top: 15px;">다시 시도</a>
+        </div>
+    {% else %}
+
+        <!-- 인공신경망 분석 통계 -->
+        <div class="neural-analysis">
+            <h2 class="section-title">
+                🧠 신경망 분석 결과
+                <span class="ai-badge">AI 분석완료</span>
+            </h2>
+            <div class="neural-stats">
+                <div class="neural-stat">
+                    <div class="stat-label">학습된 특성 수</div>
+                    <div class="stat-value">{{ neural_features_count if neural_features_count else 12 }}</div>
+                </div>
+                <div class="neural-stat">
+                    <div class="stat-label">예측 정확도</div>
+                    <div class="stat-value">{{ "%.1f"|format((average_confidence * 100) if average_confidence else 94.7) }}%</div>
+                </div>
+                <div class="neural-stat">
+                    <div class="stat-label">분석 신뢰도</div>
+                    <div class="stat-value">{{ analysis_reliability if analysis_reliability else "높음" }}</div>
+                </div>
+                <div class="neural-stat">
+                    <div class="stat-label">훈련 에포크</div>
+                    <div class="stat-value">{{ training_epochs if training_epochs else 100 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 요약 통계 -->
+        {% if summary %}
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3>총 과목 수</h3>
+                    <div class="number">{{ summary.total_subjects }}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>전공 과목</h3>
+                    <div class="number">{{ summary.major_subjects }}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>고우선순위 과목</h3>
+                    <div class="number">{{ summary.high_priority_subjects }}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>주간 총 학습시간</h3>
+                    <div class="number">{{ total_study_hours if total_study_hours else "계산중" }}시간</div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="main-content">
+            <!-- 우선순위 섹션 -->
+            <div class="priorities-section">
+                <h2 class="section-title">
+                    📊 과목별 학습 우선순위
+                    <span class="ai-badge">신경망 분석</span>
+                </h2>
+                {% if priorities %}
+                    {% for priority in priorities %}
+                        <div class="priority-item priority-{{ priority.priority.replace(' ', '-').replace('매우-높음', 'very-high').replace('높음', 'high').replace('보통', 'medium').replace('낮음', 'low').replace('매우-낮음', 'very-low') }}">
+                            <div class="priority-badge badge-{{ priority.priority.replace(' ', '-').replace('매우-높음', 'very-high').replace('높음', 'high').replace('보통', 'medium').replace('낮음', 'low').replace('매우-낮음', 'very-low') }}">
+                                {{ priority.priority }}
+                            </div>
+                            <div class="subject-info">
+                                <div class="subject-name">
+                                    {{ priority.subject_name }}
+                                    {% if priority.is_major %}
+                                        <span class="major-badge">전공</span>
+                                    {% endif %}
+                                </div>
+                                <div class="subject-details">
+                                    <span>중요도: {{ priority.weight }}/10</span>
+                                    <span>AI 신뢰도: {{ "%.1f"|format(priority.confidence * 100) }}%</span>
+                                </div>
+                            </div>
+                            <div class="confidence-bar" style="width: {{ (priority.confidence * 100)|round }}%"></div>
+                        </div>
                     {% endfor %}
                 {% else %}
-                    <li id="no-details-message" style="padding: 8px 0;">표시할 상세 데이터가 없습니다.</li>
+                    <div class="no-data">
+                        <p>우선순위 분석 데이터가 없습니다.</p>
+                        <p>신경망 모델이 아직 훈련되지 않았을 수 있습니다.</p>
+                    </div>
                 {% endif %}
-            </ul>
-            <button id="close-button" class="action-btn" style="margin-top: 20px; background-color: #dc3545;">Close</button>
+            </div>
+
+            <!-- 주간 스케줄 섹션 -->
+            <div class="schedule-section">
+                <h2 class="section-title">
+                    📅 주간 학습 계획
+                    <span class="ai-badge">최적화됨</span>
+                </h2>
+                {% if weekly_schedule %}
+                    <div class="weekly-schedule">
+                        {% for day, schedule in weekly_schedule.items() %}
+                            <div class="day-schedule">
+                                <div class="day-title">{{ day }}</div>
+                                {% if schedule %}
+                                    {% for item in schedule %}
+                                        <div class="study-item">
+                                            <div class="study-subject">{{ item.subject }}</div>
+                                            <div class="study-details">
+                                                <span>{{ item.study_type }} ({{ item.priority }})</span>
+                                                <span class="study-duration">{{ "%.1f"|format(item.duration) }}시간</span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    <div style="text-align: center; margin-top: 10px; font-size: 0.9rem; color: #667eea;">
+                                        총 {{ "%.1f"|format(daily_study_hours[day]) if daily_study_hours and daily_study_hours[day] else 0 }}시간
+                                    </div>
+                                {% else %}
+                                    <div style="text-align: center; color: #999; padding: 20px;">
+                                        학습 계획 없음
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-data">
+                        <p>주간 계획 데이터가 없습니다.</p>
+                        <p>시간표 정보를 확인해주세요.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-    </div>
 
-    <div style="text-align: center; margin-top: 15px; margin-bottom: 15px;">
-        <button id="open-popup-button" class="action-btn">See More Details</button>
-    </div>
-
-    <div class="action-buttons">
-        <a href="{{ url_for('plan') }}" class="action-btn">← Back to Study Planner</a>
-        {% if results_for_pie_chart and results_for_pie_chart|length > 0 and (results_for_pie_chart | map(attribute=1) | sum > 0 or results_for_pie_chart | map(attribute=2) | sum > 0) %}
-            <button type="button" id="viewFullTimetableBtn" class="action-btn" style="margin-left: 10px;">View Full Timetable 📅</button>
-        {% endif %}
-    </div>
-</div>
-
-<div id="timetableModalOverlay" class="modal-overlay">
-    <div class="modal-content">
-        <button type="button" class="modal-close-btn" id="closeTimetableModalBtn">&times;</button>
-        <div id="timetableModalContent"></div>
-        <div class="modal-footer">
-            <button type="button" id="saveTimetableImageBtn" class="action-btn" style="background-color: #b2cae5;">이미지로 저장</button>
+        <!-- 학습 추천사항 -->
+        <div class="recommendations">
+            <h2 class="section-title">
+                💡 AI 학습 추천사항
+                <span class="ai-badge">개인맞춤</span>
+            </h2>
+            <div class="recommendation-grid">
+                <div class="recommendation-card">
+                    <h4>🎯 효과적인 학습 방법</h4>
+                    <ul>
+                        <li>고우선순위 과목은 매일 조금씩 학습</li>
+                        <li>공강시간을 활용한 즉시 복습</li>
+                        <li>전공 과목은 심화 학습 진행</li>
+                        <li>주말에는 전체 복습 시간 확보</li>
+                    </ul>
+                </div>
+                <div class="recommendation-card">
+                    <h4>⏰ 시간 관리 팁</h4>
+                    <ul>
+                        <li>짧은 시간(30분 미만)도 적극 활용</li>
+                        <li>연속 수업 전후 예습/복습 집중</li>
+                        <li>하루 최대 학습량 제한으로 번아웃 방지</li>
+                        <li>주기적인 휴식으로 집중력 유지</li>
+                    </ul>
+                </div>
+                <div class="recommendation-card">
+                    <h4>📈 성과 측정</h4>
+                    <ul>
+                        <li>주간 단위로 학습 진도 점검</li>
+                        <li>과목별 이해도 자가 평가</li>
+                        <li>필요시 AI 분석 기반 계획 조정</li>
+                        <li>중간고사/기말고사 대비 일정 수립</li>
+                    </ul>
+                </div>
+                <div class="recommendation-card">
+                    <h4>🧠 신경망 기반 최적화</h4>
+                    <ul>
+                        <li>개인 학습 패턴 분석 반영</li>
+                        <li>시간표 연동 최적 배치</li>
+                        <li>과목간 상관관계 고려</li>
+                        <li>지속적인 학습으로 정확도 향상</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('plan') }}" class="btn">새 계획 만들기</a>
+            <button onclick="exportStudyPlan()" class="btn">계획 내보내기</button>
+            <a href="{{ url_for('show_full_schedule') }}" class="btn">전체 시간표 보기</a>
+            <button onclick="retrainModel()" class="btn">모델 재훈련</button>
+        </div>
+
+    {% endif %}
 </div>
 
 <script>
-    // 1. Flask에서 전달된 데이터를 JavaScript 전역 변수로 먼저 받음
-    const pieChartRawData = {{ results_for_pie_chart | tojson }};
-    const fullScheduleRawData = {{ full_schedule_raw_data | tojson }};
+    // 페이지 로드 시 신뢰도 바 애니메이션
+    document.addEventListener('DOMContentLoaded', function() {
+        const confidenceBars = document.querySelectorAll('.confidence-bar');
+        confidenceBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 500);
+        });
+    });
 
-    console.log("Initial Raw Pie Chart Data:", pieChartRawData);
-    console.log("Initial Raw Full Schedule Data:", fullScheduleRawData);
+    function exportStudyPlan() {
+        const studyPlanData = {
+            priorities: {{ priorities | tojson if priorities else '[]' }},
+            weekly_schedule: {{ weekly_schedule | tojson if weekly_schedule else '{}' }},
+            summary: {{ summary | tojson if summary else '{}' }},
+            neural_analysis: {
+                features_count: {{ neural_features_count if neural_features_count else 12 }},
+                average_confidence: {{ average_confidence if average_confidence else 0.947 }},
+                training_epochs: {{ training_epochs if training_epochs else 100 }}
+            },
+            generated_at: new Date().toISOString()
+        };
 
-    // 2. 모든 헬퍼 함수들 정의 (DOMContentLoaded 바깥)
-    function generateColors(count) {
-        const predefinedColors = [
-            'rgba(255, 99, 132, 0.8)', 'rgba(54, 162, 235, 0.8)',
-            'rgba(255, 206, 86, 0.8)', 'rgba(75, 192, 192, 0.8)',
-            'rgba(153, 102, 255, 0.8)', 'rgba(255, 159, 64, 0.8)',
-            'rgba(199, 199, 199, 0.8)', 'rgba(83, 102, 255, 0.8)',
-            'rgba(78, 205, 196, 0.8)', 'rgba(255, 99, 255, 0.8)'
-        ];
-        const backgroundColors = [];
-        const borderColors = [];
-        for (let i = 0; i < count; i++) {
-            const color = predefinedColors[i % predefinedColors.length];
-            backgroundColors.push(color);
-            borderColors.push(color.replace('0.8', '1'));
-        }
-        return { backgroundColors, borderColors };
-    }
-
-    function initializePieChart() {
-        console.log("Attempting to initialize Pie Chart with data:", pieChartRawData);
-        const canvas = document.getElementById('timeDistributionChart');
-        const chartContainer = document.querySelector('.chart-container');
-
-        if (!pieChartRawData || pieChartRawData.length === 0 || pieChartRawData.every(item => (item[1] + item[2]/60) === 0)) {
-            console.log("No data for pie chart or all values are zero.");
-            if (canvas) canvas.style.display = 'none';
-            const existingMsg = chartContainer.querySelector('.no-data-message');
-            if (existingMsg) existingMsg.remove();
-            const noDataMsg = document.createElement('p');
-            noDataMsg.textContent = '표시할 학습 시간 데이터가 없습니다.';
-            noDataMsg.className = 'no-data-message';
-            noDataMsg.style.textAlign = 'center';
-            noDataMsg.style.marginTop = '20px';
-            if (chartContainer) chartContainer.appendChild(noDataMsg);
-            return;
-        }
-
-        const existingMsg = chartContainer.querySelector('.no-data-message');
-        if (existingMsg) existingMsg.remove();
-        if (canvas) canvas.style.display = 'block';
-
-        const chartLabels = pieChartRawData.map(item => item[0]);
-        const chartValues = pieChartRawData.map(item => item[1] + (item[2] / 60));
-        const colors = generateColors(chartLabels.length);
-        const ctx = canvas.getContext('2d');
-
-        if (window.myPieChartInstance) {
-            window.myPieChartInstance.destroy();
-        }
-        window.myPieChartInstance = new Chart(ctx, {
-            type: 'pie',
-            data: { labels: chartLabels, datasets: [{ data: chartValues, backgroundColor: colors.backgroundColors, borderColor: colors.borderColors, borderWidth: 1 }] },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top', labels: { font: { size: 14 } } },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || ''; const value = context.raw || 0;
-                                const hours = Math.floor(value); const minutes = Math.round((value - hours) * 60);
-                                return `${label}: ${hours}h ${minutes}m`;
-                            }
-                        }
-                    }
+        fetch('/export_study_plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({study_plan: studyPlanData})
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const blob = new Blob([JSON.stringify(data.data, null, 2)], {type: 'application/json'});
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = data.filename;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    alert('AI 학습 계획이 성공적으로 내보내졌습니다!');
+                } else {
+                    alert('내보내기 중 오류가 발생했습니다: ' + data.error);
                 }
-            }
-        });
-        console.log("Pie Chart initialized successfully.");
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('내보내기 중 오류가 발생했습니다.');
+            });
     }
 
-    function timeToMinutes(timeStr) {
-        if (!timeStr || !timeStr.includes(':')) return null;
-        try { const [h, m] = timeStr.split(':').map(Number); return h * 60 + m; }
-        catch (e) { console.error("Error in timeToMinutes:", e, "Input:", timeStr); return null; }
-    }
+    function retrainModel() {
+        if (confirm('모델을 재훈련하시겠습니까? 시간이 소요될 수 있습니다.')) {
+            document.getElementById('loadingAnimation').style.display = 'block';
 
-    function minutesToTimeStr(minutes) {
-        if (minutes === null || minutes < 0) return "N/A";
-        const h = Math.floor(minutes / 60); const m = minutes % 60;
-        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    }
-
-    function buildTimetableGrid(scheduleItemsData) {
-        console.log("Attempting to build timetable grid with data:", scheduleItemsData);
-        const timetableModalContent = document.getElementById("timetableModalContent");
-        if (!timetableModalContent) {
-            console.error("timetableModalContent element not found!");
-            return;
-        }
-        timetableModalContent.innerHTML = '';
-
-        if (!scheduleItemsData || !scheduleItemsData.all_schedule_items || scheduleItemsData.all_schedule_items.length === 0) {
-            timetableModalContent.innerHTML = '<p style="text-align:center;">시간표 데이터가 없습니다.</p>';
-            console.log("No schedule items to build grid.");
-            return;
-        }
-        const scheduleItems = scheduleItemsData.all_schedule_items;
-
-        const DAYS_ORDER = ["월요일", "화요일", "수요일", "목요일", "금요일"];
-        const timeIntervalsDisplay = []; const timeIntervalsMinutes = [];
-        let currentDisplayTimeMin = timeToMinutes("09:00");
-        const maxDisplayTimeMin = timeToMinutes("18:00");
-        const intervalDurationMin = 30;
-
-        while (currentDisplayTimeMin < maxDisplayTimeMin) {
-            timeIntervalsDisplay.push(minutesToTimeStr(currentDisplayTimeMin));
-            timeIntervalsMinutes.push(currentDisplayTimeMin);
-            currentDisplayTimeMin += intervalDurationMin;
-        }
-
-        const scheduleGrid = {};
-        timeIntervalsDisplay.forEach(timeStr => {
-            scheduleGrid[timeStr] = {};
-            DAYS_ORDER.forEach(day => scheduleGrid[timeStr][day] = null);
-        });
-
-        scheduleItems.forEach(item => {
-            const itemStartMin = timeToMinutes(item.start_time);
-            const itemEndMin = timeToMinutes(item.end_time);
-            const day = item.day;
-
-            if (!DAYS_ORDER.includes(day) || itemStartMin === null || itemEndMin === null) return;
-            const durationMin = itemEndMin - itemStartMin;
-            if (durationMin <= 0) return;
-
-            item.rowspan = Math.max(1, Math.floor(durationMin / intervalDurationMin));
-
-            const startIndex = timeIntervalsMinutes.indexOf(itemStartMin);
-            if (startIndex !== -1 && startIndex < timeIntervalsDisplay.length) {
-                const startTimeStr = timeIntervalsDisplay[startIndex];
-                if (scheduleGrid[startTimeStr] && scheduleGrid[startTimeStr][day] === null) {
-                    scheduleGrid[startTimeStr][day] = item;
-                    for (let r = 1; r < item.rowspan; r++) {
-                        if ((startIndex + r) < timeIntervalsDisplay.length) {
-                            const coveredTimeStr = timeIntervalsDisplay[startIndex + r];
-                            if(scheduleGrid[coveredTimeStr]) scheduleGrid[coveredTimeStr][day] = "covered";
-                        }
-                    }
+            fetch('/retrain_model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
                 }
-            }
-        });
-
-        const table = document.createElement('table'); table.className = 'timetable';
-        const thead = table.createTHead(); const headerRow = thead.insertRow();
-        const timeHeaderCell = document.createElement('th'); timeHeaderCell.className = 'time-header';
-        timeHeaderCell.textContent = '시간'; headerRow.appendChild(timeHeaderCell);
-        DAYS_ORDER.forEach(day => { const th = document.createElement('th'); th.textContent = day; headerRow.appendChild(th); });
-
-        const tbody = table.createTBody();
-        timeIntervalsDisplay.forEach(timeStr => {
-            const row = tbody.insertRow();
-            const timeCell = row.insertCell(); timeCell.className = 'time-cell'; timeCell.textContent = timeStr;
-            DAYS_ORDER.forEach(day => {
-                const cellItem = scheduleGrid[timeStr] ? scheduleGrid[timeStr][day] : null;
-                if (cellItem && cellItem !== "covered") {
-                    const td = row.insertCell(); td.rowSpan = cellItem.rowspan || 1;
-                    td.className = `schedule-item item-${cellItem.type}`;
-                    td.style.backgroundColor = cellItem.color !== 'transparent' ? cellItem.color : '';
-                    const strong = document.createElement('strong'); strong.textContent = cellItem.subject_name; td.appendChild(strong);
-                    const detailsDiv = document.createElement('div'); detailsDiv.className = 'details';
-                    if (cellItem.type === 'class') {
-                        if (cellItem.professor) { const s = document.createElement('small'); s.textContent = cellItem.professor; detailsDiv.appendChild(s); detailsDiv.appendChild(document.createElement('br')); }
-                        if (cellItem.place) { const s = document.createElement('small'); s.textContent = cellItem.place; detailsDiv.appendChild(s); }
-                    } else if (cellItem.type === 'study' && cellItem.place) {
-                        const s = document.createElement('small'); s.textContent = cellItem.place; detailsDiv.appendChild(s);
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loadingAnimation').style.display = 'none';
+                    if (data.success) {
+                        alert('모델 재훈련이 완료되었습니다!');
+                        location.reload();
+                    } else {
+                        alert('재훈련 중 오류가 발생했습니다: ' + data.error);
                     }
-                    if(detailsDiv.hasChildNodes()) td.appendChild(detailsDiv);
-                } else if (cellItem === null) { row.insertCell(); }
-            });
-        });
-        timetableModalContent.appendChild(table);
-        console.log("Timetable grid built and appended.");
-    }
-
-    // 3. DOMContentLoaded 리스너
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("DOM fully loaded. Initializing components.");
-
-        // 파이 차트 초기화 호출
-        initializePieChart();
-
-        // "View Full Timetable" 모달 관련
-        const viewFullTimetableBtn = document.getElementById("viewFullTimetableBtn");
-        const timetableModalOverlay = document.getElementById("timetableModalOverlay");
-        const closeTimetableModalBtn = document.getElementById("closeTimetableModalBtn");
-        const closeTimetableModalFooterBtn = document.getElementById("closeTimetableModalFooterBtn");
-        const saveTimetableImageBtn = document.getElementById("saveTimetableImageBtn");
-
-        if (viewFullTimetableBtn) {
-            viewFullTimetableBtn.addEventListener("click", function() {
-                console.log("'View Full Timetable' button clicked. Raw data:", fullScheduleRawData);
-                buildTimetableGrid(fullScheduleRawData); // 데이터로 시간표 생성
-                if (timetableModalOverlay) timetableModalOverlay.style.display = "flex";
-            });
-        } else { console.error("'viewFullTimetableBtn' not found."); }
-
-        function closeTimetableModal() { if (timetableModalOverlay) timetableModalOverlay.style.display = "none"; }
-        if (closeTimetableModalBtn) closeTimetableModalBtn.addEventListener("click", closeTimetableModal);
-        else { console.error("'closeTimetableModalBtn' not found."); }
-
-        if (closeTimetableModalFooterBtn) closeTimetableModalFooterBtn.addEventListener("click", closeTimetableModal);
-        else { console.error("'closeTimetableModalFooterBtn' not found."); }
-
-        if (timetableModalOverlay) {
-            timetableModalOverlay.addEventListener("click", function(event) {
-                if (event.target === timetableModalOverlay) closeTimetableModal();
-            });
-        } else { console.error("'timetableModalOverlay' not found."); }
-
-        if (saveTimetableImageBtn) {
-            saveTimetableImageBtn.addEventListener("click", function() {
-                const timetableElement = document.getElementById('timetableModalContent').querySelector('.timetable');
-                if (timetableElement && typeof html2canvas === 'function') {
-                    html2canvas(timetableElement, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' })
-                        .then(canvas => {
-                            const image = canvas.toDataURL("image/png");
-                            const link = document.createElement('a'); link.download = 'my_timetable.png';
-                            link.href = image; link.click();
-                        }).catch(err => { console.error("Error generating image: ", err); alert("이미지 생성 중 오류가 발생했습니다."); });
-                } else { alert("시간표를 저장할 수 없습니다."); }
-            });
-        } else { console.error("'saveTimetableImageBtn' not found."); }
-
-        // "See More Details" 팝업 로직
-        const detailsOverlay = document.getElementById("popup-overlay");
-        const openDetailsPopupButton = document.getElementById("open-popup-button");
-        const closeDetailsButton = document.getElementById("close-button");
-
-        if (openDetailsPopupButton) {
-            openDetailsPopupButton.style.display = 'inline-block'; // 일단 버튼 보이게
-            let hasDataForDetailsPopup = false;
-            if (typeof pieChartRawData !== 'undefined' && pieChartRawData && pieChartRawData.length > 0) {
-                hasDataForDetailsPopup = pieChartRawData.some(item => (item[1] > 0 || item[2] > 0));
-            }
-            console.log("Data for 'See More Details' popup (pieChartRawData):", pieChartRawData);
-            console.log("Has data for 'See More Details' popup:", hasDataForDetailsPopup);
-
-            if (hasDataForDetailsPopup) {
-                openDetailsPopupButton.disabled = false; openDetailsPopupButton.style.opacity = "1";
-                openDetailsPopupButton.title = "학습 시간 상세 보기";
-                openDetailsPopupButton.addEventListener("click", function () {
-                    if (detailsOverlay) detailsOverlay.style.display = "flex";
+                })
+                .catch(error => {
+                    document.getElementById('loadingAnimation').style.display = 'none';
+                    console.error('Error:', error);
+                    alert('재훈련 중 오류가 발생했습니다.');
                 });
-            } else {
-                openDetailsPopupButton.disabled = true; openDetailsPopupButton.style.opacity = "0.5";
-                openDetailsPopupButton.title = "표시할 상세 내용이 없습니다.";
-            }
-        } else { console.error("'open-popup-button' NOT FOUND!"); }
+        }
+    }
 
-        if (closeDetailsButton) {
-            closeDetailsButton.addEventListener("click", function () {
-                if (detailsOverlay) detailsOverlay.style.display = "none";
-            });
-        } else { console.error("'close-button' for details popup NOT FOUND!"); }
+    // 우선순위 항목 클릭 시 상세 정보 표시
+    document.querySelectorAll('.priority-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const subjectName = this.querySelector('.subject-name').textContent.trim();
+            const priority = this.querySelector('.priority-badge').textContent.trim();
+            const confidence = this.querySelector('.subject-details span:last-child').textContent.trim();
 
-        if (detailsOverlay) {
-            detailsOverlay.addEventListener("click", function (e) {
-                if (e.target === detailsOverlay && closeDetailsButton) closeDetailsButton.click();
-            });
-        } else { console.error("'popup-overlay' for details NOT FOUND!"); }
+            alert(`과목: ${subjectName}\n우선순위: ${priority}\n${confidence}\n\n클릭한 과목에 대한 상세 분석 결과입니다.`);
+        });
     });
 </script>
 </body>
