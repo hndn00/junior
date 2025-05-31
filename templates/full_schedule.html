@@ -79,7 +79,7 @@
                         {% if cell_item and cell_item != "covered" %}
                             <td rowspan="{{ cell_item.rowspan if cell_item.rowspan else 1 }}"
                                 class="schedule-item item-{{ cell_item.type }}"
-                                style="background-color: {{ cell_item.color if cell_item.color and cell_item.color != 'transparent' else '' }};">
+                                style="background-color: {% if cell_item.type == 'class' %}#f0f0f0{% elif cell_item.color and cell_item.color != 'transparent' %}{{ cell_item.color }}{% endif %};">
                                 <strong>{{ cell_item.subject_name }}</strong>
                                 <div class="details">
                                     {% if cell_item.type == 'class' %}
