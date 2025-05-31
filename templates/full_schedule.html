@@ -11,41 +11,166 @@
     {# html2canvas 라이브러리 추가 (CDN) #}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'NoonnuBasicGothicRegular', sans-serif;
-            margin: 20px;
-            background-color: #f9f9f9;
+            font-family: 'NoonnuBasicGothicRegular', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
+
         .container {
-            background-color: #fff;
+            max-width: 1000px;
+            margin: 0 auto;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: white;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
+
         h1 {
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
-        .action-buttons { /* 버튼들을 담을 컨테이너 스타일 (선택 사항) */
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 20px; /* 테이블과의 간격 */
+
+        /* 테이블 스타일 유지하면서 다른 스타일 요소 추가 */
+        .timetable {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+            margin: 0 auto 30px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
         }
-        .action-buttons button, .action-buttons a { /* 버튼 공통 스타일 */
-            background-color: #007bff;
+
+        .timetable th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
             color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-            margin-left: 10px;
-            transition: background-color 0.2s;
+            font-weight: bold;
+            padding: 10px;
+            text-align: center;
         }
-        .action-buttons button:hover, .action-buttons a:hover {
-            background-color: #0056b3;
+
+        .timetable td {
+            border: 1px solid #e1e8ff;
+            padding: 5px;
+            text-align: center;
+            vertical-align: top;
+            font-size: 11px;
+            height: 25px;
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .timetable .time-cell {
+            font-weight: bold;
+            background-color: #f8f9ff;
+            font-size: 10px;
+            border-right: 2px solid #e1e8ff;
+        }
+
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .action-buttons button, 
+        .action-buttons a {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px;
+        }
+
+        .action-buttons button:hover, 
+        .action-buttons a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 과목 항목 스타일 */
+        .schedule-item {
+            color: #333;
+            line-height: 1.2;
+            padding: 4px;
+            border-radius: 3px;
+        }
+
+        .schedule-item strong {
+            font-size: 12px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .schedule-item .details {
+            margin-top: 2px;
+        }
+
+        .schedule-item .details small {
+            font-size: 9px;
+            color: #555;
+            display: block;
+            line-height: 1.1;
+        }
+
+        .item-class {
+            border-left: 3px solid #1565c0;
+        }
+
+        .item-study {
+            border-left: 3px solid #2e7d32;
+        }
+
+        /* 오류 및 메시지 스타일 */
+        .error-message {
+            color: red;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #ffe6e6;
+            border-radius: 5px;
+            border: 1px solid #ffcccc;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .action-buttons button, 
+            .action-buttons a {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+                display: block;
+                margin: 10px auto;
+                width: 80%;
+            }
         }
     </style>
 </head>
@@ -53,7 +178,7 @@
 <div class="container">
     <h1>종합 시간표</h1>
     {% if message %}
-        <p style="text-align: center; color: red;">{{ message }}</p>
+        <p class="error-message">{{ message }}</p>
     {% endif %}
 
     <div class="action-buttons">
@@ -61,7 +186,7 @@
     </div>
 
     {% if schedule_grid and time_intervals and days_of_week %}
-        <table class="timetable" id="scheduleTableToSave"> {# 시간표 테이블에 ID 추가 #}
+        <table class="timetable" id="scheduleTableToSave">
             <thead>
             <tr>
                 <th class="time-header">시간</th>
@@ -101,30 +226,31 @@
             </tbody>
         </table>
     {% elif not message %}
-        <p style="text-align: center;">시간표 데이터가 없습니다. 먼저 시간표를 로드하고 학습 계획을 계산해주세요.</p>
+        <div style="text-align: center; padding: 40px; color: #666;">
+            시간표 데이터가 없습니다. 먼저 시간표를 로드하고 학습 계획을 계산해주세요.
+        </div>
     {% endif %}
+    
     <div class="action-buttons">
-        <a href="{{ url_for('show_result') }}" class="back-button">
+        <a href="{{ url_for('show_result') }}">
             ← 학습 계획 페이지로 돌아가기
         </a>
     </div>
+</div>
 
 <script>
     function saveScheduleAsImage() {
         const scheduleTable = document.getElementById('scheduleTableToSave');
         if (scheduleTable) {
             html2canvas(scheduleTable, {
-                allowTaint: true, // 외부 이미지가 있다면 필요할 수 있음
-                useCORS: true,    // CORS 문제 방지 (외부 폰트나 이미지 사용 시)
-                scale: 2          // 해상도를 높이기 위해 스케일 조정 (선택 사항)
+                allowTaint: true,
+                useCORS: true,
+                scale: 2
             }).then(canvas => {
-                // 캔버스를 이미지 URL로 변환 (PNG 형식)
                 const imageURL = canvas.toDataURL('image/png');
-
-                // 다운로드 링크 생성 및 클릭
                 const downloadLink = document.createElement('a');
                 downloadLink.href = imageURL;
-                downloadLink.download = 'my_schedule.png'; // 저장될 파일명
+                downloadLink.download = 'my_schedule.png';
                 document.body.appendChild(downloadLink);
                 downloadLink.click();
                 document.body.removeChild(downloadLink);
