@@ -118,19 +118,19 @@
         </div>
         
         <div class="loading-steps">
-            <div class="loading-step active">
+            <div class="loading-step active" id="step1">
                 <div class="step-indicator" id="step1-indicator">⚙️</div>
                 <div class="step-text" id="step1-text">시간표 데이터 분석 중...</div>
             </div>
-            <div class="loading-step">
+            <div class="loading-step" id="step2">
                 <div class="step-indicator" id="step2-indicator">🧠</div>
                 <div class="step-text" id="step2-text">과목 우선순위 계산 중</div>
             </div>
-            <div class="loading-step">
+            <div class="loading-step" id="step3">
                 <div class="step-indicator" id="step3-indicator">📊</div>
                 <div class="step-text" id="step3-text">학습 시간 최적화 중</div>
             </div>
-            <div class="loading-step">
+            <div class="loading-step" id="step4">
                 <div class="step-indicator" id="step4-indicator">📝</div>
                 <div class="step-text" id="step4-text">최종 학습 계획 생성 중</div>
             </div>
@@ -178,18 +178,41 @@
         // 다음 단계로 이동하는 함수
         function moveToNextStep() {
             // 현재 단계 비활성화
-            document.getElementById(`step${currentStep}-indicator`).classList.remove('active');
-            document.getElementById(`step${currentStep}-text`).classList.remove('active');
+            document.getElementById(`step${currentStep}`).classList.remove('active');
             
             // 다음 단계 활성화
             currentStep++;
-            document.getElementById(`step${currentStep}-indicator`).classList.add('active');
-            document.getElementById(`step${currentStep}-text`).classList.add('active');
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // 단계 변경 애니메이션 효과 추가
+            const stepElement = document.getElementById(`step${currentStep}`);
+            stepElement.style.transition = 'border-left-color 0.5s ease-in-out';
+            
+            // 진행 메시지 업데이트
+            const loadingMessage = document.querySelector('.loading-message');
+            switch(currentStep) {
+                case 2:
+                    loadingMessage.textContent = "인공신경망이 과목 우선순위를 분석 중입니다...";
+                    break;
+                case 3:
+                    loadingMessage.textContent = "학습 시간 최적화를 진행하고 있습니다...";
+                    break;
+                case 4:
+                    loadingMessage.textContent = "최종 학습 계획을 완성하고 있습니다...";
+                    break;
+            }
         }
         
         // 폼을 서버에 제출하는 함수
         function submitForm() {
-            document.getElementById('planDataForm').submit();
+            // 최종 제출 전 메시지 업데이트
+            const loadingMessage = document.querySelector('.loading-message');
+            loadingMessage.textContent = "학습 계획이 완성되었습니다. 결과 페이지로 이동합니다...";
+            
+            // 잠시 대기 후 제출 (사용자가 메시지를 볼 수 있도록)
+            setTimeout(() => {
+                document.getElementById('planDataForm').submit();
+            }, 1000);
         }
         
         // 페이지 로드 시 진행 상황 업데이트 시작
@@ -207,8 +230,8 @@
                 document.getElementById('subjects_json_hidden_input').value = decodeURIComponent(subjectsData);
             }
             
-            // 진행 상황 업데이트 시작
-            setTimeout(updateProgress, 500);
+            // 진행 상황 업데이트 시작 (약간의 지연 후 시작)
+            setTimeout(updateProgress, 800);
         };
     </script>
 </body>
