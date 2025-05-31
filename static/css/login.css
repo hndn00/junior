@@ -4,26 +4,30 @@
     font-weight: normal;
     font-style: normal;
 }
+
 /* 전체 페이지 설정 */
 body {
+    font-family: 'NoonnuBasicGothicRegular', 'Malgun Gothic', sans-serif, 'Inter', 'Noto Sans';
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
     margin: 0;
-    padding: 0;
-    font-family: 'NoonnuBasicGothicRegular', 'Noto Sans', sans-serif, 'Inter';
-    background-color: #ffffff;
+    padding: 20px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     min-height: 100vh;
 }
 
 /* 로그인 컨테이너 박스 */
 .container {
-    background-color: #f9f9f9;
-    padding: 32px;
+    background-color: white;
+    padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    width: 100%;
-    max-width: 400px;
+    width: 600px;
+    height: 600px;
+    text-align: center;
     position: relative;
 }
 
@@ -37,6 +41,25 @@ body {
 
 /* 홈 버튼 */
 .home-btn {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: background-color 0.2s;
+    border: 1px solid #ddd;
+    display: inline-block;
+}
+
+.home-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* 로그아웃 버튼 */
+.logout-btn {
     background-color: #f0f0f0;
     color: #555;
     text-decoration: none;
@@ -48,7 +71,7 @@ body {
     display: inline-block;
 }
 
-.home-btn:hover {
+.logout-btn:hover {
     background-color: #e0e0e0;
 }
 
@@ -56,8 +79,16 @@ body {
 .container h1 {
     text-align: center;
     color: #121416;
+    font-size: 45px;
+    margin-bottom: 40px;
+    margin-top: 100px
+}
+
+.container h2 {
+    text-align: center;
+    color: #121416;
     font-size: 24px;
-    margin-bottom: 24px;
+    margin-bottom: 25px;
 }
 
 /* 입력 그룹 */
@@ -69,12 +100,228 @@ body {
 .container label {
     display: block;
     margin-bottom: 6px;
+    font-size: 18px;
+    color: #333333;
+    text-align: left;
+
+}
+
+/* 입력 필드 */
+.container input, input[type="text"], input[type="number"], textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 15px;
+}
+
+/* 버튼 */
+.container button, button, .action-btn, input[type="submit"], button[type="submit"] {
+    width: 100%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.container button:hover, a:hover, button:hover, .action-btn:hover, input[type="submit"]:hover, button[type="submit"]:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.button-group button {
+    flex: 1;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logo-image {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: contain;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* 액션 버튼 컨테이너 */
+.action-buttons {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+}
+
+/* 차트 컨테이너 스타일 */
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 543px;
+    margin: 20px auto 30px auto;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+#timeDistributionChart {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* 리스트 스타일 */
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin-bottom: 30px;
+}
+
+li {
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 18px;
+}
+
+li strong {
+    color: #0056b3;
+}
+
+/* 과목 리스트 토글 */
+#subject-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+
+#subject-list.show {
+    max-height: 500px;
+}
+
+/* 모달 오버레이 */
+.modal-overlay, #popup-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 모달 컨테이너 */
+.modal-container, #popup {
+    background-color: #f9f9f9;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#popup {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 팝업 컨테이너 */
+#popup-container {
+    background-color: #ffffff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    max-width: 600px;
+    transform: translateY(100%);
+    transition: transform 0.4s ease;
+}
+
+/* 모달 닫기 버튼 */
+.modal-close, #close-button {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    width: auto;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-close:hover {
+    color: #333;
+    background: none;
+}
+
+#close-button {
+    display: block;
+    margin: 20px auto 0 auto;
+    background-color: #dc3545;
+    position: static;
+}
+
+/* 모달 제목 */
+.modal-container h2 {
+    text-align: center;
+    color: #121416;
+    font-size: 24px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+#popup h2 {
+    margin: 0 0 20px;
+    text-align: center;
+}
+
+/* 모달 내 폼 스타일 */
+.modal-container form div {
+    margin-bottom: 16px;
+}
+
+.modal-container label {
+    display: block;
+    margin-bottom: 6px;
     font-weight: 500;
     color: #333333;
 }
 
-/* 입력 필드 */
-.container input {
+.modal-container input {
     width: 100%;
     padding: 12px;
     border-radius: 8px;
@@ -83,11 +330,10 @@ body {
     box-sizing: border-box;
 }
 
-/* 버튼 */
-.container button {
+.modal-container button[type="submit"] {
     width: 100%;
     background-color: #b2cae5;
-    color: #121416;
+    color: white;
     border: none;
     padding: 12px;
     border-radius: 8px;
@@ -98,6 +344,47 @@ body {
     margin-top: 10px;
 }
 
-.container button:hover {
+.modal-container button[type="submit"]:hover {
     background-color: #a0bfe0;
+}
+
+/* 팝업 리스트 */
+#popup-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#popup-list li {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    font-size: 18px;
+    color: #495057;
+}
+
+/* 팝업 활성화 상태 */
+#popup-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#popup-container.active {
+    transform: translateY(0);
+}
+
+/* 패스워드 확인 일치 여부 표시 */
+.password-match-indicator {
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.password-match {
+    color: #4CAF50;
+}
+
+.password-mismatch {
+    color: #f44336;
 }

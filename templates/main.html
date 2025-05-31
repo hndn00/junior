@@ -6,128 +6,12 @@
     <title>Study Planner</title>
     <link rel="icon" href="/static/image/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="/static/css/main.css" />
-    <style>
-        @font-face {
-            font-family: 'NoonnuBasicGothicRegular';
-            src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noon-2410@1.0/NoonnuBasicGothicRegular.woff2') format('woff2');
-            font-weight: normal;
-            font-style: normal;
-      }
-        body {
-            margin: 0;
-            font-family: 'NoonnuBasicGothicRegular-serif';
-            background-image: url('/static/image/background.png');
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
 
-        .container {
-            display: flex;
-            width: 80%;
-            height: 70%;
-            background-color: transparent; /* 완전 투명 배경 */
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .left {
-            flex: 0.5; /* 왼쪽 영역이 전체 너비의 절반을 차지하도록 수정 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px; /* 내용과 테두리 사이의 여백 추가 */
-            box-sizing: border-box; /* padding과 border가 너비에 포함되도록 설정 */
-        }
-
-        .right {
-            flex: 0.5; /* 오른쪽 영역이 전체 너비의 절반을 차지하도록 수정 */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px; /* 내용과 테두리 사이의 여백 추가 */
-            box-sizing: border-box; /* padding과 border가 너비에 포함되도록 설정 */
-            text-align: center; /* 오른쪽 내용들을 중앙 정렬 */
-        }
-
-        .logo-image {
-            max-width: 100%; /* 로고 이미지가 왼쪽 영역을 넘지 않도록 수정 */
-            max-height: 100%; /* 로고 이미지가 왼쪽 영역을 넘지 않도록 수정 */
-            object-fit: contain; /* 이미지 비율을 유지하면서 영역에 맞게 조절 */
-        }
-
-        .welcome-text {
-            font-family: 'NoonnuBasicGothicRegular', sans-serif;
-            font-size: 2.2em; /* 더 크게 */
-            font-weight: bold; /* 굵게 */
-            color: #333;
-            margin-bottom: 5px; /* Study Planner와의 간격 조정 */
-        }
-
-        .study-planner-text {
-            font-family: 'NoonnuBasicGothicRegular', sans-serif;
-            font-size: 4em; /* 더 크게 */
-            font-weight: bold;
-            color: #333;
-            /* margin-bottom: 20px;  study-planner-container에서 간격 관리 */
-        }
-
-        .separator {
-            width: 60%; /* 오른쪽 영역 너비에 대한 비율 */
-            max-width: 250px; /* 최대 너비 설정 (너무 길어지지 않도록) */
-            height: 3px;
-            background-color: #f44336; /* 빨간색 */
-            margin-top: 5px; /* Study Planner 텍스트와 별 아이콘 아래에 위치하도록 조정 */
-            margin-bottom: 30px;
-        }
-
-        .start-button {
-            background-color: #f0f0f0; /* 밝은 회색 배경 */
-            color: #333; /* 어두운 글자색 */
-            border: 1px solid #ccc; /* 회색 테두리 */
-            padding: 12px 25px; /* 버튼 내부 여백 */
-            border-radius: 5px; /* 둥근 모서리 */
-            cursor: pointer;
-            font-size: 1.1em; /* 글자 크기 */
-            font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.1s ease; /* 부드러운 전환 효과 */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 약간의 그림자 효과 */
-        }
-
-        .start-button:hover {
-            background-color: #e0e0e0; /* 호버 시 약간 어두운 배경색 */
-        }
-
-        .start-button:active {
-            background-color: #d0d0d0; /* 클릭 시 더 어두운 배경색 */
-            transform: translateY(1px); /* 클릭 시 살짝 눌리는 효과 */
-        }
-
-        .star-icon {
-            color: #f44336; /* 빨간색 */
-            font-size: 1.8em; /* 별 크기 조정 */
-            margin-left: 8px; /* Study Planner 텍스트와의 간격 */
-            position: relative; /* 상대 위치 지정 */
-            top: -5px; /* 별의 수직 위치 미세 조정 (텍스트와 어울리도록) */
-        }
-
-        .study-planner-container {
-            display: flex;
-            align-items: baseline; /* 텍스트와 아이콘의 기준선을 맞춤 */
-            justify-content: center; /* 중앙 정렬 */
-            margin-bottom: 10px; /* 아래쪽 구분선과의 간격 */
-        }
-    </style>
 </head>
 <body>
 <div class="container">
     <div class="left">
-        <img src="/static/image/sample.png" alt="로고" class="logo-image">
+        <img src="/static/image/favicon.ico" alt="로고" class="logo-image">
     </div>
     <div class="right">
         <div class="welcome-text">Welcome to</div>

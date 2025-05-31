@@ -4,16 +4,14 @@
     <meta charset="UTF-8">
     <title>Log In</title>
     <link rel="stylesheet" href="static/css/login.css">
-    <link rel="icon" href="{{ url_for('static', filename='image/favicon.ico') }}" type="image/x-icon" />
-
 </head>
 <body>
 <div class="container">
     <div class="top-right-menu">
         <a href="/" class="home-btn">Back to Main</a>
     </div>
-    
-    <h1>Log In</h1>
+
+    <h1>Sign In</h1>
     <form action="/login" method="post">
         <div>
             <label for="username">Id:</label>
@@ -23,11 +21,125 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
         </div>
-        <button type="submit">Log In</button>
+        <div class="button-group">
+            <button type="submit">Sign In</button>
+            <button type="button" id="signUpBtn">Sign Up</button>
+        </div>
         {% if error %}
         <p style="color: red;">{{ error }}</p>
         {% endif %}
     </form>
 </div>
+
+<!-- 회원가입 모달 -->
+<div class="modal-overlay" id="signUpModal">
+    <div class="modal-container">
+        <button class="modal-close" id="closeModal">&times;</button>
+        <h2>Sign Up for G.G.G</h2>
+        <form action="/signup" method="post" id="signUpForm">
+            <div>
+                <label for="signup-username">Username:</label>
+                <input type="text" id="signup-username" name="username" required>
+            </div>
+            <div>
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" name="email" required>
+            </div>
+            <div>
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" name="password" required>
+            </div>
+            <div>
+                <label for="signup-confirm-password">Confirm Password:</label>
+                <input type="password" id="signup-confirm-password" name="confirm_password" required>
+                <div class="password-match-indicator" id="passwordMatchIndicator"></div>
+            </div>
+            <button type="submit">Create Account</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 모달 관련 요소들
+    const signUpBtn = document.getElementById('signUpBtn');
+    const signUpModal = document.getElementById('signUpModal');
+    const closeModal = document.getElementById('closeModal');
+    const signUpForm = document.getElementById('signUpForm');
+    const passwordInput = document.getElementById('signup-password');
+    const confirmPasswordInput = document.getElementById('signup-confirm-password');
+    const passwordMatchIndicator = document.getElementById('passwordMatchIndicator');
+
+    // Sign Up 버튼 클릭 시 모달 열기
+    signUpBtn.addEventListener('click', function() {
+        signUpModal.style.display = 'flex';
+    });
+
+    // 닫기 버튼 클릭 시 모달 닫기
+    closeModal.addEventListener('click', function() {
+        closeSignUpModal();
+    });
+
+    // 모달 외부 클릭 시 모달 닫기
+    signUpModal.addEventListener('click', function(e) {
+        if (e.target === signUpModal) {
+            closeSignUpModal();
+        }
+    });
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && signUpModal.style.display === 'flex') {
+            closeSignUpModal();
+        }
+    });
+
+    // 모달 닫기 함수
+    function closeSignUpModal() {
+        signUpModal.style.display = 'none';
+        signUpForm.reset();
+        passwordMatchIndicator.textContent = '';
+    }
+
+    // 패스워드 확인 검증
+    function checkPasswordMatch() {
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+
+        if (confirmPassword === '') {
+            passwordMatchIndicator.textContent = '';
+            return;
+        }
+
+        if (password === confirmPassword) {
+            passwordMatchIndicator.textContent = 'Passwords match ✓';
+            passwordMatchIndicator.className = 'password-match-indicator password-match';
+        } else {
+            passwordMatchIndicator.textContent = 'Passwords do not match ✗';
+            passwordMatchIndicator.className = 'password-match-indicator password-mismatch';
+        }
+    }
+
+    // 패스워드 입력 시 실시간 검증
+    passwordInput.addEventListener('input', checkPasswordMatch);
+    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+    // 회원가입 폼 제출 시 검증
+    signUpForm.addEventListener('submit', function(e) {
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return;
+        }
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long!');
+            return;
+        }
+        closeSignUpModal()
+    });
+</script>
 </body>
 </html>
