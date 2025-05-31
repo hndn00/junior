@@ -303,7 +303,7 @@
 
     <h1>Study Planner</h1>
 
-    <form id="planForm" method="POST" action="/plan" onsubmit="return prepareFormSubmission()">
+    <form id="planForm" method="POST" action="/plan" onsubmit="return redirectToLoading(event)">
         <input
                 type="hidden"
                 id="timetable_slots"
@@ -566,6 +566,24 @@
         document.getElementById('subjects_json').value = JSON.stringify(subjectsArr);
 
         return true; // 폼 제출 허용
+    }
+
+    function redirectToLoading(event) {
+        event.preventDefault();
+        
+        // Validate form data
+        if (!prepareFormSubmission()) {
+            return false;
+        }
+        
+        // Get form data
+        const timetableData = document.getElementById('timetable_slots').value;
+        const subjectsData = document.getElementById('subjects_json').value;
+        
+        // Redirect to loading page with data
+        window.location.href = `/loading?timetable_data=${encodeURIComponent(timetableData)}&subjects_data=${encodeURIComponent(subjectsData)}`;
+        
+        return false;
     }
 
     // 오버레이 클릭 시 모달 닫기
