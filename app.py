@@ -411,7 +411,7 @@ def show_full_schedule():
 
                     # '예습' 또는 '복습'이 아닌 경우에만 과목 색상 적용
                     # (만약 모든 study 타입에 색을 입히고 싶다면 이 조건문 제거)
-                    if '예습' not in study_type and '복습' not in study_type:
+                    if not ('예습' not in study_type and '복습' not in study_type):
                         item_color = get_color_for_subject(ai_task['subject'])
                     # --- ---
 
