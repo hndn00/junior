@@ -7,8 +7,7 @@
 
 body {
     font-family: 'NoonnuBasicGothicRegular', 'Malgun Gothic', sans-serif, 'Inter', 'Noto Sans';
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background-attachment: fixed;
+    background: #f9f9f9;
     color: #333;
     margin: 0;
     padding: 20px;
@@ -27,7 +26,6 @@ body {
     background-color: #f9f9f9;
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     width: 350px;
     height: 500px;
     text-align: center;
