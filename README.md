@@ -1,4 +1,4 @@
-# GongGang Genie
+# GongGang
 
 
 ## Requirements Installation
