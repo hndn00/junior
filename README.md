@@ -1,55 +1,41 @@
-# GongGang
+# Key Components
 
+**1. StudyPlanNet (Neural Network Model)**
 
-## Requirements Installation
-```python
+- A 4-layer fully connected neural network (Input → 128 → 64 → 32 → 5 output)
+- Utilizes ReLU activation function and Dropout(0.3) to prevent overfitting
+- The output classifies study priority into 5 levels (Very High to Very Low) using softmax
 
-pip install BeautifulSoup4 requests bs4 python-dateutil icalendar flask 
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-python3 train_model.py
+**2. StudyPlanDataset (Feature Extraction)**
 
+Generates a 12-dimensional feature vector for each subject:
 
-```
+- Subject importance (normalized weight)
+- Major relevance (0 or 1)
+- Weekly class hours
+- Idle time before/after class
+- Day-of-week distribution (Monday to Friday, 5 dimensions)
+- Time-of-day distribution (Morning/Afternoon/Evening, 3 dimensions)
+- Class continuity index
 
-## Run Application
+**3. StudyPlanGenerator (Main Controller)**
 
-```python
+- Handles model training and prediction
+- Analyzes individual study priority
+- Automatically generates weekly study schedules
 
-flask run
-or
-python3 app.py
+## Operating Principle
 
-```
+1. **Data Input**: Subject information (name, importance, major relevance) and timetable data
+2. **Feature Extraction**: Analyzes each subject’s timetable pattern and converts it into a 12-dimensional vector
+3. **Model Training**: Trains the neural network with subject features and labeled priorities
+4. **Priority Prediction**: Predicts study priority for each subject using the trained model
+5. **Schedule Generation**: Creates a weekly study plan based on predicted priorities and available idle time
 
-# About…
+## Distinctive Features
 
-## **Timetable Loading and Free Time Calculation (`/process_timetable`)**
+- **Timetable-Based Analysis**: Goes beyond basic subject importance and incorporates actual schedule patterns
+- **Personalization**: Reflects factors such as major relevance and linkage between class and idle time
+- **Practical Output**: Includes pre-study/review separation, recommended study materials, and time allocation
 
-- The `/process_timetable` endpoint calls the Everytime API to retrieve the timetable XML. (`everytime.py`)
-- The received XML is parsed by the `Convert` object to extract class information by subject. (`convert.py`)
-- "Class" slots and "Free time" slots are calculated in minutes between 9:00 AM and 9:00 PM, sorted, and returned as JSON. (`app.py`)
-
-## **Study Time Allocation and Result Rendering (`/plan`)**
-
-- The client sends the total available study time, subject names, weight (importance level), and whether it's a major subject via POST. It also includes the hidden field `timetable_slots` to submit both free/class slot information. (`index.html`)
-- The server loads a pre-trained PyTorch MLP model (`TimetableNet`) to predict which subject to study in each free time slot. (`timetable_nn.py`)
-- The prediction results are used to generate:
-    - `results_for_pie_chart`: for pie chart rendering
-    - `full_schedule_raw_data`: for modal and full timetable view.
-    - These are passed to the template for rendering. (`app.py`)
-
-
-
-## **Full Timetable Visualization (`/show_full_schedule`)**
-
-- In a separate route, original data stored in the session is retrieved.
-- Using the same logic, class and free time slots are recombined and rendered into an HTML `<table>` based on 30-minute grid intervals. (`full_schedule.html`)
-
----
-
-# Advantages
-
-- **Modularity**: Parsing (`convert.py`), API calls (`everytime.py`), machine learning (`timetable_nn.py`), and training scripts (`train_model.py`) are separated, making the codebase easy to extend and maintain.
-
-- **Full-Stack Coverage**: It spans the entire stack—from backend (Flask) → frontend (index.html + JS) → machine learning (PyTorch) → calendar export (ICS) → static visualization (full_schedule.html).
-
+The core idea behind this model is that “a study plan should not be determined solely by subject importance, but also in conjunction with the student's timetable pattern.” For example, a subject followed by a large idle period is more favorable for review and thus may be assigned a higher priority.
