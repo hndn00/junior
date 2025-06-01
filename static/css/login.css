@@ -9,25 +9,32 @@
 body {
     font-family: 'NoonnuBasicGothicRegular', 'Malgun Gothic', sans-serif, 'Inter', 'Noto Sans';
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
     color: #333;
     margin: 0;
     padding: 20px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     justify-content: center;
-    min-height: 100vh;
+    align-items: center;
+    width: 412px;
+    height: 915px;
 }
 
 /* 로그인 컨테이너 박스 */
 .container {
-    background-color: white;
+    background-color: #f9f9f9;
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    width: 600px;
-    height: 600px;
+    width: 350px;
+    height: 750px;
     text-align: center;
+    justify-self: center;
+    align-items: center;
     position: relative;
 }
 
@@ -80,7 +87,7 @@ body {
     text-align: center;
     color: #121416;
     font-size: 45px;
-    margin-bottom: 40px;
+    margin-bottom: 80px;
     margin-top: 100px
 }
 
@@ -126,6 +133,7 @@ body {
     padding: 12px 20px;
     border-radius: 8px;
     font-size: 16px;
+    font-weight: bolder;
     cursor: pointer;
     transition: background-color 0.2s ease;
     margin-top: 10px;
@@ -142,54 +150,22 @@ body {
 
 .button-group {
     display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
+    justify-content: space-between; /* 또는 center */
+    gap: 10px; /* 버튼 사이 간격 */
+    margin-top: 20px;
 }
 
 .button-group button {
     flex: 1;
-    padding: 0.75rem 1.5rem;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
 }
 
-.logo-image {
-    max-width: 100px;
-    max-height: 100px;
-    object-fit: contain;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* 액션 버튼 컨테이너 */
-.action-buttons {
-    margin-top: 25px;
-    display: flex;
-    justify-content: center;
-}
-
-/* 차트 컨테이너 스타일 */
-.chart-container {
-    position: relative;
-    width: 100%;
-    max-width: 500px;
-    height: 543px;
-    margin: 20px auto 30px auto;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-#timeDistributionChart {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-}
-
-/* 리스트 스타일 */
 ul {
     list-style-type: none;
     padding: 0;
@@ -210,7 +186,6 @@ li strong {
     color: #0056b3;
 }
 
-/* 과목 리스트 토글 */
 #subject-list {
     max-height: 0;
     overflow: hidden;
@@ -221,7 +196,6 @@ li strong {
     max-height: 500px;
 }
 
-/* 모달 오버레이 */
 .modal-overlay, #popup-overlay {
     display: none;
     position: fixed;
@@ -235,7 +209,6 @@ li strong {
     align-items: center;
 }
 
-/* 모달 컨테이너 */
 .modal-container, #popup {
     background-color: #f9f9f9;
     padding: 32px;
@@ -256,7 +229,6 @@ li strong {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* 팝업 컨테이너 */
 #popup-container {
     background-color: #ffffff;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
@@ -268,7 +240,6 @@ li strong {
     transition: transform 0.4s ease;
 }
 
-/* 모달 닫기 버튼 */
 .modal-close, #close-button {
     position: absolute;
     top: 15px;
@@ -295,7 +266,6 @@ li strong {
     position: static;
 }
 
-/* 모달 제목 */
 .modal-container h2 {
     text-align: center;
     color: #121416;
@@ -309,7 +279,6 @@ li strong {
     text-align: center;
 }
 
-/* 모달 내 폼 스타일 */
 .modal-container form div {
     margin-bottom: 16px;
 }
@@ -365,7 +334,6 @@ li strong {
     color: #495057;
 }
 
-/* 팝업 활성화 상태 */
 #popup-overlay.active {
     opacity: 1;
     pointer-events: auto;
@@ -375,7 +343,6 @@ li strong {
     transform: translateY(0);
 }
 
-/* 패스워드 확인 일치 여부 표시 */
 .password-match-indicator {
     font-size: 12px;
     margin-top: 4px;

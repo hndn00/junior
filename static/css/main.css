@@ -7,13 +7,20 @@
 
 body {
     font-family: 'NoonnuBasicGothicRegular', 'Malgun Gothic', sans-serif, 'Inter', 'Noto Sans';
-    background-color: #ffffff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
     color: #333;
     margin: 0;
     padding: 20px;
     display: flex;
-    flex-direction: column;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    justify-content: center;
     align-items: center;
+    width: 412px;
+    height: 915px;
 }
 
 .container {
@@ -21,268 +28,54 @@ body {
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    width: 100%;
-    max-width: 700px;
+    width: 350px;
+    height: 500px;
+    text-align: center;
+    justify-self: center;
+    align-items: center;
+}
+
+.logo-image {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin-top: 70px;
+}
+
+.welcome-text {
+    margin: 5px;
     text-align: center;
     position: relative;
+    font-size: 48px;
+    font-weight: bold;
 }
 
-/* 중앙 컨테이너 */
-.center {
+.study-planner-text {
     text-align: center;
     position: relative;
-    width: 100%;
-    max-width: 800px;
-    padding: 20px;
+    font-size: 34px;
+    font-weight: bold;
 }
 
-/* 오른쪽 상단 메뉴 */
-.top-right-menu {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    z-index: 10;
-}
-
-/* 로그아웃 버튼 */
-.logout-btn {
-    background-color: #f0f0f0;
-    color: #555;
+.start-button {
+    height: 45px;
+    width: 150px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 10px;
+    text-align: center;
     text-decoration: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    transition: background-color 0.2s;
-    border: 1px solid #ddd;
     display: inline-block;
 }
 
-.logout-btn:hover {
-    background-color: #e0e0e0;
-}
-
-/* 액션 버튼 컨테이너 */
-.action-buttons {
-    margin-top: 25px;
-    display: flex;
-    justify-content: center;
-}
-
-/* 액션 버튼 */
-.action-btn {
-    background-color: #b2cae5;
-    color: white;
-    padding: 12px 20px;
-    text-align: center;
-    font-size: 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.action-btn:hover {
+.start-button:hover {
     background-color: #0056b3;
-}
-
-/* 차트 컨테이너 스타일 개선 */
-.chart-container {
-    position: relative;
-    width: 100%;
-    max-width: 500px;
-    height: 543px;
-    margin: 20px auto 30px auto;
-    padding: 10px;
-    box-sizing: border-box;
-}
-
-/* 캔버스 요소가 컨테이너를 꽉 채우도록 설정 */
-#timeDistributionChart {
-    width: 100% !important;
-    height: 100% !important;
-    display: block;
-}
-
-h2, h1 {
-    color: #121416;
-    margin-bottom: 25px;
-}
-
-/* 제목 텍스트 */
-h1 {
-    font-size: 40px;
-    font-weight: bold;
-    color: #121416;
-    margin-bottom: 40px;
-}
-
-h2 {
-    font-size: 80px;
-    font-weight: bold;
-    color: #121416;
-    margin-bottom: 40px;
-}
-
-ul {
-    list-style-type: none;
-    padding: 0;
-    margin-bottom: 30px;
-}
-
-li {
-    background-color: #e9ecef;
-    color: #495057;
-    border: 1px solid #dee2e6;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    font-size: 18px;
-}
-
-li strong {
-    color: #0056b3;
-}
-
-a, button, .action-btn {
-    background-color: #b2cae5;
-    color: #121416;
-    padding: 12px 20px;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-}
-
-a:hover, button:hover, .action-btn:hover {
-    background-color: #0056b3;
-}
-
-/* 로그인 버튼 */
-button {
-    background-color: #b2cae5;
-    color: #121416;
-    border: none;
-    padding: 14px 28px;
-    font-size: 20px;
-    border-radius: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-button:hover {
-    background-color: #a0bfe0;
-}
-
-#subject-list {
-    max-height: 0; /* 숨김 상태 */
-    overflow: hidden;
-    transition: max-height 0.5s ease; /* 높이 전환의 부드러운 효과 */
-}
-
-#subject-list.show {
-    max-height: 500px; /* 보여질 때 최대 높이 설정 */
-}
-
-/* 오버레이 배경 */
-#popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    display: none;
-}
-
-#popup {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-}
-
-#popup h2 {
-    margin: 0 0 20px;
-    text-align: center;
-}
-
-/* 팝업 컨테이너 */
-#popup-container {
-    background-color: #ffffff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    padding: 20px;
-    width: 90%;
-    max-width: 600px;
-    transform: translateY(100%); /* 기본적으로 화면 아래에 숨김 상태 */
-    transition: transform 0.4s ease; /* 부드러운 올라오는 애니메이션 */
-}
-
-/* 팝업 리스트 */
-#popup-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-#popup-list li {
-    background-color: #e9ecef;
-    border: 1px solid #dee2e6;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    font-size: 18px;
-    color: #495057;
-}
-
-/* 팝업 닫기 버튼 */
-#close-button {
-    display: block;
-    margin: 20px auto 0 auto;
-    background-color: #dc3545;
-}
-
-#popup-overlay.active {
-    opacity: 1; /* 보임 */
-    pointer-events: auto;
-}
-
-#popup-container.active {
-    transform: translateY(0); /* 화면 아래에서 위로 올라옴 */
-}
-
-input[type="text"], input[type="number"], textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 16px;
-    box-sizing: border-box;
-}
-
-input[type="submit"], button[type="submit"] {
-    background-color: #b2cae5;
-    color: #121416;
-    font-size: 16px;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-}
-
-input[type="submit"]:hover, button[type="submit"]:hover {
-    background-color: #a0bfe0;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
