@@ -1,4 +1,6 @@
-# Key Components
+# 공강 AI planner
+
+## Key Components
 
 **1. StudyPlanNet (Neural Network Model)**
 
