@@ -35,6 +35,3 @@ python every2cal.py --id <EVERYTIME_ID> --begin 2024-03-02 --end 2024-06-20
 - `templates/`, `static/` – Web page templates and static resources
 - `subject_datas/` – User-provided subject data storage
 
-## License
-
-This project is released under the MIT License unless noted otherwise.
