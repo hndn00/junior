@@ -1,43 +1,40 @@
-# 공강 AI planner
+# GongGang AI Planner
 
-## Key Components
+This project generates a personalized study plan using your university timetable. You can fetch schedules from Everytime or upload XML files, analyze free periods, and use a neural network model to suggest weekly study priorities. A web interface lets you visualize and adjust the plan.
 
-**1. StudyPlanNet (Neural Network Model)**
+## Features
 
-- A 4-layer fully connected neural network (Input → 128 → 64 → 32 → 5 output)
-- Utilizes ReLU activation function and Dropout(0.3) to prevent overfitting
-- The output classifies study priority into 5 levels (Very High to Very Low) using softmax
+- **Timetable import**: `everytime.py` fetches an XML timetable from an Everytime share URL or loads a local file.
+- **Timetable → Calendar**: `every2cal.py` lists free time slots and exports an `.ics` calendar.
+- **Study plan generation**: `models/study_plan_nn.py` assigns priorities based on subject importance, major relevance, and free time.
+- **Web interface**: `app.py` is a Flask server to input timetable data, view schedules, and retrain the model if needed.
 
-**2. StudyPlanDataset (Feature Extraction)**
+## Getting Started
 
-Generates a 12-dimensional feature vector for each subject:
+1. Install Python 3.8+ and required packages:
+   ```bash
+   pip install flask torch requests icalendar python-dateutil
+   ```
+2. Launch the web server:
+   ```bash
+   python app.py
+   ```
+3. Visit `http://localhost:5001` in your browser to load a timetable and generate a study plan.
 
-- Subject importance (normalized weight)
-- Major relevance (0 or 1)
-- Weekly class hours
-- Idle time before/after class
-- Day-of-week distribution (Monday to Friday, 5 dimensions)
-- Time-of-day distribution (Morning/Afternoon/Evening, 3 dimensions)
-- Class continuity index
+Convert a timetable directly to an `.ics` file:
+```bash
+python every2cal.py --id <EVERYTIME_ID> --begin 2024-03-02 --end 2024-06-20
+```
 
-**3. StudyPlanGenerator (Main Controller)**
+## Directory Overview
 
-- Handles model training and prediction
-- Analyzes individual study priority
-- Automatically generates weekly study schedules
+- `app.py` – Flask application entry point
+- `every2cal.py` – Converts timetable XML to `.ics`
+- `convert.py` – Parses XML and performs iCalendar conversion
+- `models/` – Neural network (`study_plan_nn.py`) and saved model files
+- `templates/`, `static/` – Web page templates and static resources
+- `subject_datas/` – User-provided subject data storage
 
-## Operating Principle
+## License
 
-1. **Data Input**: Subject information (name, importance, major relevance) and timetable data
-2. **Feature Extraction**: Analyzes each subject’s timetable pattern and converts it into a 12-dimensional vector
-3. **Model Training**: Trains the neural network with subject features and labeled priorities
-4. **Priority Prediction**: Predicts study priority for each subject using the trained model
-5. **Schedule Generation**: Creates a weekly study plan based on predicted priorities and available idle time
-
-## Distinctive Features
-
-- **Timetable-Based Analysis**: Goes beyond basic subject importance and incorporates actual schedule patterns
-- **Personalization**: Reflects factors such as major relevance and linkage between class and idle time
-- **Practical Output**: Includes pre-study/review separation, recommended study materials, and time allocation
-
-The core idea behind this model is that “a study plan should not be determined solely by subject importance, but also in conjunction with the student's timetable pattern.” For example, a subject followed by a large idle period is more favorable for review and thus may be assigned a higher priority.
+This project is released under the MIT License unless noted otherwise.
